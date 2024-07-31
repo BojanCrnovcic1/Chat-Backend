@@ -1,9 +1,9 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { Users } from "./users";
+import { User } from "./user";
 
 @Index("friend_id", ["friendId"], {})
-@Entity("friends")
-export class Friends {
+@Entity("friend")
+export class Friend {
   @Column({type: "int",  primary: true, name: "user_id" })
   userId: number;
 
@@ -26,17 +26,17 @@ export class Friends {
   })
   createdAt: Date | null;
 
-  @ManyToOne(() => Users, (users) => users.friends, {
+  @ManyToOne(() => User, (users) => users.friends, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: User;
 
-  @ManyToOne(() => Users, (users) => users.friends2, {
+  @ManyToOne(() => User, (users) => users.friends2, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "friend_id", referencedColumnName: "userId" }])
-  friend: Users;
+  friend: User;
 }

@@ -1,10 +1,10 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { ChatRooms } from "./chat-rooms.entity";
-import { Users } from "./users";
+import { ChatRoom } from "./chat-room.entity";
+import { User } from "./user";
 
 @Index("user_id", ["userId"], {})
-@Entity("banned_users")
-export class BannedUsers {
+@Entity("banned_user")
+export class BannedUser {
   @Column({type: "int",  primary: true, name: "chat_room_id" })
   chatRoomId: number;
 
@@ -19,17 +19,17 @@ export class BannedUsers {
   })
   bannedAt: Date | null;
 
-  @ManyToOne(() => ChatRooms, (chatRooms) => chatRooms.bannedUsers, {
+  @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.bannedUsers, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
-  chatRoom: ChatRooms;
+  chatRoom: ChatRoom;
 
-  @ManyToOne(() => Users, (users) => users.bannedUsers, {
+  @ManyToOne(() => User, (users) => users.bannedUsers, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: User;
 }

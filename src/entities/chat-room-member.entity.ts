@@ -1,10 +1,10 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { ChatRooms } from "./chat-rooms.entity";
-import { Users } from "./users";
+import { ChatRoom } from "./chat-room.entity";
+import { User } from "./user";
 
 @Index("user_id", ["userId"], {})
-@Entity("chat_room_members")
-export class ChatRoomMembers {
+@Entity("chat_room_member")
+export class ChatRoomMember {
   @Column({type: "int", primary: true, name: "chat_room_id" })
   chatRoomId: number;
 
@@ -27,17 +27,17 @@ export class ChatRoomMembers {
   })
   joinedAt: Date | null;
 
-  @ManyToOne(() => ChatRooms, (chatRooms) => chatRooms.chatRoomMembers, {
+  @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.chatRoomMembers, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
-  chatRoom: ChatRooms;
+  chatRoom: ChatRoom;
 
-  @ManyToOne(() => Users, (users) => users.chatRoomMembers, {
+  @ManyToOne(() => User, (users) => users.chatRoomMembers, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: User;
 }

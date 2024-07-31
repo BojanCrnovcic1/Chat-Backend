@@ -7,14 +7,14 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { ChatRooms } from "./chat-rooms.entity";
-import { Users } from "./users";
+import { ChatRoom } from "./chat-room.entity";
+import { User } from "./user";
 
 @Index("chat_room_id", ["chatRoomId"], {})
 @Index("user_id", ["userId"], {})
 @Index("parent_message_id", ["parentMessageId"], {})
-@Entity("messages")
-export class Messages {
+@Entity("message")
+export class Message {
   @PrimaryGeneratedColumn({ type: "int", name: "message_id" })
   messageId: number;
 
@@ -47,29 +47,29 @@ export class Messages {
   })
   createdAt: Date | null;
 
-  @ManyToOne(() => ChatRooms, (chatRooms) => chatRooms.messages, {
+  @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.messages, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
-  chatRoom: ChatRooms;
+  chatRoom: ChatRoom;
 
-  @ManyToOne(() => Users, (users) => users.messages, {
+  @ManyToOne(() => User, (users) => users.messages, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: User;
 
-  @ManyToOne(() => Messages, (messages) => messages.messages, {
+  @ManyToOne(() => Message, (messages) => messages.messages, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([
     { name: "parent_message_id", referencedColumnName: "messageId" },
   ])
-  parentMessage: Messages;
+  parentMessage: Message;
 
-  @OneToMany(() => Messages, (messages) => messages.parentMessage)
-  messages: Messages[];
+  @OneToMany(() => Message, (messages) => messages.parentMessage)
+  messages: Message[];
 }

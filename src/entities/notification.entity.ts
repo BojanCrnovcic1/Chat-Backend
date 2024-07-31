@@ -6,11 +6,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Users } from "./users";
+import { User } from "./user";
 
 @Index("user_id", ["userId"], {})
-@Entity("notifications")
-export class Notifications {
+@Entity("notification")
+export class Notification {
   @PrimaryGeneratedColumn({ type: "int", name: "notification_id" })
   notificationId: number;
 
@@ -37,10 +37,10 @@ export class Notifications {
   })
   createdAt: Date | null;
 
-  @ManyToOne(() => Users, (users) => users.notifications, {
+  @ManyToOne(() => User, (users) => users.notifications, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: Users;
+  user: User;
 }

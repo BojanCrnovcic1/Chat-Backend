@@ -1,10 +1,10 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { BannedUsers } from "./banned-users.entity";
-import { ChatRoomMembers } from "./chat-room-members.entity";
-import { Messages } from "./messages.entity";
+import { BannedUser } from "./banned-user.entity";
+import { ChatRoomMember } from "./chat-room-member.entity";
+import { Message } from "./message.entity";
 
-@Entity("chat_rooms")
-export class ChatRooms {
+@Entity("chat_room")
+export class ChatRoom {
   @PrimaryGeneratedColumn({ type: "int", name: "chat_room_id" })
   chatRoomId: number;
 
@@ -28,15 +28,15 @@ export class ChatRooms {
   })
   createdAt: Date | null;
 
-  @OneToMany(() => BannedUsers, (bannedUsers) => bannedUsers.chatRoom)
-  bannedUsers: BannedUsers[];
+  @OneToMany(() => BannedUser, (bannedUsers) => bannedUsers.chatRoom)
+  bannedUsers: BannedUser[];
 
   @OneToMany(
-    () => ChatRoomMembers,
-    (chatRoomMembers) => chatRoomMembers.chatRoom
+    () => ChatRoomMember,
+    (chatRoomMember) => chatRoomMember.chatRoom
   )
-  chatRoomMembers: ChatRoomMembers[];
+  chatRoomMembers: ChatRoomMember[];
 
-  @OneToMany(() => Messages, (messages) => messages.chatRoom)
-  messages: Messages[];
+  @OneToMany(() => Message, (messages) => messages.chatRoom)
+  messages: Message[];
 }
