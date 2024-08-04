@@ -62,4 +62,12 @@ export class UserService {
         }
         return savedUser;
     }
+
+    async deleteUser(userId: number): Promise<User | ApiResponse> {
+        const user = await this.userRepository.findOne({where: {userId: userId}});
+        if (!user) {
+            return new ApiResponse('error', -1001, 'User not found!');
+        }
+        return await this.userRepository.remove(user);
+    }
 }

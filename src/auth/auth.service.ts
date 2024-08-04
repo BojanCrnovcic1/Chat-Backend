@@ -3,7 +3,7 @@ import { JwtService } from "./jwt.service";
 import * as bcrypt from "bcrypt";
 
 import { Request } from "express";
-import { UserService } from "src/service/user/user.service";
+import { UserService } from "src/services/user/user.service";
 import { User } from "src/entities/user";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
 

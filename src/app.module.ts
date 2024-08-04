@@ -10,7 +10,7 @@ import { Message } from 'src/entities/message.entity';
 import { User } from './entities/user';
 import { Notification } from './entities/notification.entity';
 import { AuthController } from './controllers/auth.controller';
-import { UserService } from './service/user/user.service';
+import { UserService } from './services/user/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtSecret } from 'config/jwt.secret';
 import { AuthMiddleware } from './auth/auth.middleware';
@@ -19,6 +19,11 @@ import { JwtService } from './auth/jwt.service';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { LocalStrategy } from './auth/local.strategy';
 import { AuthGuard } from './auth/auth.guard';
+import { ChatGateway } from './gateways/chat.gateway';
+import { MessageService } from './services/message/message.service';
+import { ChatRoomService } from './services/chatRoom/chat.room.service';
+import { ChatRoomController } from './controllers/api/chat-room.controller';
+import { MessageController } from './controllers/api/message.controller';
 
 @Module({
   imports: [
@@ -56,6 +61,8 @@ import { AuthGuard } from './auth/auth.guard';
   controllers: [
     AppController,
     AuthController,
+    ChatRoomController,
+    MessageController,
   ],
   providers: [
     UserService,
@@ -64,6 +71,9 @@ import { AuthGuard } from './auth/auth.guard';
     JwtStrategy,
     LocalStrategy,
     AuthGuard,
+    ChatGateway,
+    ChatRoomService,
+    MessageService,
   ],
   exports: [
     AuthService,
