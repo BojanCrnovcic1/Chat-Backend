@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { ChatRoom } from "./chat-room.entity";
-import { User } from "./user";
+import { User } from "./user.entity";
 
 @Index("chat_room_id", ["chatRoomId"], {})
 @Index("user_id", ["userId"], {})

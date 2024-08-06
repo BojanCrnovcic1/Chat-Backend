@@ -2,7 +2,7 @@ import { Body, Controller, HttpException, HttpStatus, Post, Req, Res } from "@ne
 import { UserService } from "src/services/user/user.service";
 import { RegisterUserDto } from "../dtos/user/register.user.dto";
 import { ApiResponse } from "src/misc/api.response.class";
-import { User } from "src/entities/user";
+import { User } from "src/entities/user.entity";
 import { AuthService } from "src/auth/auth.service";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
 import { Response } from "express";

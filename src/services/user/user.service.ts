@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RegisterUserDto } from "src/dtos/user/register.user.dto";
-import { User } from "src/entities/user";
+import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { Repository } from "typeorm";
 import * as crypto from "crypto";

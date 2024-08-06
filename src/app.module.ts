@@ -7,7 +7,7 @@ import { ChatRoom } from 'src/entities/chat-room.entity';
 import { ChatRoomMember } from 'src/entities/chat-room-member.entity';
 import { Friend } from 'src/entities/friend.entity';
 import { Message } from 'src/entities/message.entity';
-import { User } from './entities/user';
+import { User } from './entities/user.entity';
 import { Notification } from './entities/notification.entity';
 import { AuthController } from './controllers/auth.controller';
 import { UserService } from './services/user/user.service';

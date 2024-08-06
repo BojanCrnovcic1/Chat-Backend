@@ -1,6 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 import { ChatRoom } from "./chat-room.entity";
-import { User } from "./user";
+import { User } from "./user.entity";
 
 @Index("user_id", ["userId"], {})
 @Entity("banned_user")

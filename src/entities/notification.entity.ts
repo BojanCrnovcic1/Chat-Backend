@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { User } from "./user";
+import { User } from "./user.entity";
 
 @Index("user_id", ["userId"], {})
 @Entity("notification")

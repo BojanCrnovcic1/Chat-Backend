@@ -1,5 +1,5 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
-import { User } from "./user";
+import { User } from "./user.entity";
 
 @Index("friend_id", ["friendId"], {})
 @Entity("friend")

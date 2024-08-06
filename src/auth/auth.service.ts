@@ -4,7 +4,7 @@ import * as bcrypt from "bcrypt";
 
 import { Request } from "express";
 import { UserService } from "src/services/user/user.service";
-import { User } from "src/entities/user";
+import { User } from "src/entities/user.entity";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
 
 @Injectable()
