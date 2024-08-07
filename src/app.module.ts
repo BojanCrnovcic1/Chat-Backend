@@ -24,6 +24,10 @@ import { MessageService } from './services/message/message.service';
 import { ChatRoomService } from './services/chatRoom/chat.room.service';
 import { ChatRoomController } from './controllers/api/chat-room.controller';
 import { MessageController } from './controllers/api/message.controller';
+import { BannedUserService } from './services/bannedUser/banned-user.service';
+import { FriendService } from './services/friend/friend.service';
+import { FriendController } from './controllers/api/friend.controller';
+import { UserController } from './controllers/api/user.controller';
 
 @Module({
   imports: [
@@ -63,6 +67,8 @@ import { MessageController } from './controllers/api/message.controller';
     AuthController,
     ChatRoomController,
     MessageController,
+    FriendController,
+    UserController,
   ],
   providers: [
     UserService,
@@ -74,6 +80,8 @@ import { MessageController } from './controllers/api/message.controller';
     ChatGateway,
     ChatRoomService,
     MessageService,
+    BannedUserService,
+    FriendService,
   ],
   exports: [
     AuthService,
