@@ -70,6 +70,26 @@ export class UserService {
         return savedUser;
     }
 
+    async createProfilePicture(userId: number, profilePicture: string): Promise<User | ApiResponse> {
+        const user = await this.userRepository.findOne({where: {userId: userId}});
+        if (!user) {
+            return new ApiResponse('error', -1001, 'User not found!');
+        }
+     
+        const newPhoto = new User();
+        newPhoto.userId = userId;
+        newPhoto.email = user.email;
+        newPhoto.passwordHash = user.passwordHash;
+        newPhoto.profilePicture = profilePicture;
+        console.log()
+        const savedProfile = await this.userRepository.save(newPhoto);
+        
+        if (!savedProfile) {
+            return new ApiResponse('error', -1007, 'Profile picture is not saved.')
+        }
+        return savedProfile;
+    }
+
     async registerUser(data: RegisterUserDto): Promise<User | ApiResponse> {
         const user = await this.getUserEmail(data.email);
         if (user) {

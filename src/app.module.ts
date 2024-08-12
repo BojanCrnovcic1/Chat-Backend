@@ -28,6 +28,8 @@ import { BannedUserService } from './services/bannedUser/banned-user.service';
 import { FriendService } from './services/friend/friend.service';
 import { FriendController } from './controllers/api/friend.controller';
 import { UserController } from './controllers/api/user.controller';
+import { NotificationController } from './controllers/api/notification.controller';
+import { NotificationService } from './services/notification/notification.service';
 
 @Module({
   imports: [
@@ -69,6 +71,7 @@ import { UserController } from './controllers/api/user.controller';
     MessageController,
     FriendController,
     UserController,
+    NotificationController,
   ],
   providers: [
     UserService,
@@ -82,6 +85,7 @@ import { UserController } from './controllers/api/user.controller';
     MessageService,
     BannedUserService,
     FriendService,
+    NotificationService,
   ],
   exports: [
     AuthService,

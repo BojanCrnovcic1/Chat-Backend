@@ -9,7 +9,6 @@ import { Repository } from "typeorm";
 export class FriendService {
     constructor(
         @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
-        @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
 
     async sendFriendRequest(userId: number, friendId: number): Promise<Friend | ApiResponse> {

@@ -5,7 +5,7 @@ import { ApiResponse } from "src/misc/api.response.class";
 import { User } from "src/entities/user.entity";
 import { AuthService } from "src/auth/auth.service";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
-import { Response } from "express";
+import { Request, Response } from "express";
 
 @Controller('auth')
 export class AuthController {
@@ -32,9 +32,4 @@ export class AuthController {
         }
     }
 
-    @Post('/user/logout')
-    async logout(@Req() req) {
-        const user = req['user'];
-        await this.authService.logout(user.userId);
-    }
 }

@@ -54,7 +54,7 @@ export class AuthService {
         }
 
         user.onlineStatus = false;
-        await this.userService.updateUser(userId, user);
+       return await this.userService.updateUser(userId, user);
     }
 
       async getCurrentUser(req: Request) {

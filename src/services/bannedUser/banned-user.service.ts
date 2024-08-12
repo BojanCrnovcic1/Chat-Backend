@@ -20,11 +20,11 @@ export class BannedUserService {
             bannedAt: new Date()
         }) 
         if (!bannedUser) {
-            return new ApiResponse('error', -5005, 'User is not banned.')
+            return new ApiResponse('error', -1005, 'User is not banned.')
         }
         const saveBan = await this.bannedUserRepository.save(bannedUser);
         if (!saveBan) {
-            return new ApiResponse('error', -5005, 'Is not save user ban.')
+            return new ApiResponse('error', -1006, 'Is not save user ban.')
         }
         return saveBan;
     }
@@ -36,7 +36,7 @@ export class BannedUserService {
             bannedAt: new Date()
         }) 
         if (!bannedUser) {
-            return new ApiResponse('error', -5005, 'User is not banned.')
+            return new ApiResponse('error', -1005, 'User is not banned.')
         }
         await this.bannedUserRepository.remove(bannedUser);
     }
