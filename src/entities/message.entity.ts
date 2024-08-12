@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { ChatRoom } from "./chat-room.entity";
 import { User } from "./user.entity";
+import { Like } from "./like.entity";
 
 @Index("chat_room_id", ["chatRoomId"], {})
 @Index("user_id", ["userId"], {})
@@ -53,6 +54,9 @@ export class Message {
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
   chatRoom: ChatRoom;
+
+  @OneToMany(() => Like, (like) => like.message)
+  likes: Like[];
 
   @ManyToOne(() => User, (users) => users.messages, {
     onDelete: "NO ACTION",

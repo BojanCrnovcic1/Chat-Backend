@@ -10,6 +10,7 @@ import { ChatRoomMember } from "./chat-room-member.entity";
 import { Friend } from "./friend.entity";
 import { Message } from "./message.entity";
 import { Notification } from "./notification.entity";
+import { Like } from "./like.entity";
 
 @Index("username", ["username"], { unique: true })
 @Index("email", ["email"], { unique: true })
@@ -58,6 +59,9 @@ export class User {
 
   @OneToMany(() => Friend, (friends) => friends.friend)
   friends2: Friend[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
 
   @OneToMany(() => Message, (messages) => messages.user)
   messages: Message[];

@@ -30,6 +30,8 @@ import { FriendController } from './controllers/api/friend.controller';
 import { UserController } from './controllers/api/user.controller';
 import { NotificationController } from './controllers/api/notification.controller';
 import { NotificationService } from './services/notification/notification.service';
+import { LikeService } from './services/like/like.service';
+import { Like } from './entities/like.entity';
 
 @Module({
   imports: [
@@ -48,6 +50,7 @@ import { NotificationService } from './services/notification/notification.servic
         Message,
         Notification,
         User,
+        Like,
       ]
     }),
     TypeOrmModule.forFeature([
@@ -58,6 +61,7 @@ import { NotificationService } from './services/notification/notification.servic
       Message,
       Notification,
       User,
+      Like,
     ]),
     JwtModule.register({
       secret: jwtSecret,
@@ -86,6 +90,7 @@ import { NotificationService } from './services/notification/notification.servic
     BannedUserService,
     FriendService,
     NotificationService,
+    LikeService,
   ],
   exports: [
     AuthService,
