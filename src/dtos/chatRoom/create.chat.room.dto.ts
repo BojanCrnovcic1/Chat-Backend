@@ -1,4 +1,4 @@
-export class CreateChatRoomDto {
+export class CreateChatRoomDto {   
     name?: string;
     isGroup?: boolean;
 }

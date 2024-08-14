@@ -93,7 +93,7 @@ export class UserService {
     async registerUser(data: RegisterUserDto): Promise<User | ApiResponse> {
         const user = await this.getUserEmail(data.email);
         if (user) {
-            return new ApiResponse('error', -1002, 'User alredy exist!')
+            return new ApiResponse('error', -1002, 'User already exist!')
         }
 
         const passwordHash = crypto.createHash('sha512');
@@ -104,7 +104,7 @@ export class UserService {
         newUser.username = data.username;
         newUser.email = data.email;
         newUser.passwordHash = passwordHashString;
-        newUser.profilePicture = data.prifilePicture;
+        newUser.profilePicture = data.profilePicture;
 
         const savedUser = await this.userRepository.save(newUser);
         if (!savedUser) {
