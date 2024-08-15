@@ -1,8 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BannedUser } from "src/entities/banned-user.entity";
-import { ChatRoom } from "src/entities/chat-room.entity";
-import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { Repository } from "typeorm";
 
@@ -10,9 +8,8 @@ import { Repository } from "typeorm";
 export class BannedUserService {
     constructor(
         @InjectRepository(BannedUser) private readonly bannedUserRepository: Repository<BannedUser>,
-        @InjectRepository(ChatRoom) private readonly chatRoomRepository: Repository<ChatRoom>,
-        @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
+    
     async banUser(chatRoomId: number, userId: number): Promise<BannedUser | ApiResponse> {
         const bannedUser = this.bannedUserRepository.create({
             chatRoomId,
