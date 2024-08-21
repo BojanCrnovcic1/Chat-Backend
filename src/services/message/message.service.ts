@@ -42,6 +42,12 @@ export class MessageService {
             }
         }
 
+        if (contentType === 'video' || contentType === 'audio') {
+            if (!content) {
+                return new ApiResponse('error', -2004, `Content required for ${contentType} type`);
+            }
+        }
+
         const newMessage = this.messageRepository.create(createMessage);
 
         if (parentMessageId) {

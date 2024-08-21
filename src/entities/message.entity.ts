@@ -32,10 +32,10 @@ export class Message {
     type: "enum", 
     name: "content_type",
     nullable: true,
-    enum: ["text", "image", "link"],
+    enum: ["text", "image", "link", "video", "audio"],
     default: () => "'text'",
   })
-  contentType: "text" | "image" | "link" | null;
+  contentType: "text" | "image" | "link" | "video" | "audio" | null;
 
   @Column({type: "int",  name: "parent_message_id", nullable: true })
   parentMessageId: number | null;

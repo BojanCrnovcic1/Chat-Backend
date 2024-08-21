@@ -1,16 +1,17 @@
-import Validator from "class-validator";
-export class UpdateUserDto {
+import { IsNotEmpty, IsString, IsOptional, Length } from 'class-validator';
 
-    @Validator.IsNotEmpty()
-    @Validator.IsString()
-    @Validator.Length(3, 50)
+export class UpdateUserDto {
+  
+    @IsNotEmpty()
+    @IsString()
+    @Length(3, 50)
     username: string;
 
-    @Validator.IsNotEmpty()
-    @Validator.IsString()
+    @IsNotEmpty()
+    @IsString()
     password: string;
 
-    @Validator.IsOptional()
-    @Validator.IsString()
-    prifilePicture: string | null
+    @IsOptional()
+    @IsString()
+    prifilePicture: string | null;
 }

@@ -40,36 +40,48 @@ export class MessageController {
     }
 
     @Post('upload')
-    @UseInterceptors(FileInterceptor('photo',{
+    @UseInterceptors(FileInterceptor('file', {
         storage: multer.diskStorage({
-            destination: StorageConfig.image.destination,
+            destination: (req, file, cb) => {
+                const ext = extname(file.originalname).toLowerCase();
+                if (['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
+                    cb(null, StorageConfig.image.destination);
+                } else if (['.mp4', '.mkv', '.avi'].includes(ext)) {
+                    cb(null, StorageConfig.video.destination);
+                } else if (['.mp3', '.wav', '.ogg'].includes(ext)) {
+                    cb(null, StorageConfig.audio.destination);
+                } else {
+                    cb(new Error('Unsupported file type'), null);
+                }
+            },
             filename: (req, file, cb) => {
                 const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-                const ext = extname(file.originalname).toLowerCase();
-                cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+                cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname).toLowerCase()}`);
             }
         }),
         fileFilter(req, file, cb) {
-            const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+            const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.mkv', '.avi', '.mp3', '.wav', '.ogg'];
             const ext = extname(file.originalname).toLowerCase();
             if (allowedExtensions.includes(ext)) {
-            cb(null, true);
-           } 
-         }
-    }))
-    async uploadPhoto(@UploadedFile() file: Express.Multer.File, @Body() data: CreateMessageDto): Promise<Message | ApiResponse> {
-        if (data.contentType !== 'image') {
-            return new ApiResponse('error', -2005, 'Content type must be image for file upload');
+                cb(null, true);
+            } else {
+                cb(new Error('Unsupported file extension'), false);
+            }
         }
-
-        const imagePath = file.path;
-        const filename = basename(imagePath);
-
+    }))
+    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() data: CreateMessageDto): Promise<Message | ApiResponse> {
+        if (!['image', 'video', 'audio'].includes(data.contentType)) {
+            return new ApiResponse('error', -2005, 'Invalid content type for file upload');
+        }
+    
+        const filePath = file.path;
+        const filename = basename(filePath);
+    
         data.content = `/uploads/${filename}`;
-
+    
         return await this.messageService.create(data);
     }
-
+    
     @Post('like/:id')
     async likeMessage(@Req() req: Request, @Param('id') messageId: number): Promise<Like | ApiResponse> {
         const user = await this.authService.getCurrentUser(req);

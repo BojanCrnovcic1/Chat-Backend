@@ -1,15 +1,15 @@
-import Validator from "class-validator";
+import { IsNotEmpty, IsEmail, IsString } from "class-validator";
 export class LoginUserDto {
 
-    @Validator.IsNotEmpty()
-    @Validator.IsEmail({
+    @IsNotEmpty()
+    @IsEmail({
         allow_ip_domain: false,
         allow_utf8_local_part: true,
         require_tld: true
     })
     email: string;
 
-    @Validator.IsNotEmpty()
-    @Validator.IsString()
+    @IsNotEmpty()
+    @IsString()
     password: string;
 }

@@ -1,25 +1,24 @@
-import Validator from "class-validator";
+import {IsString, Length, IsNotEmpty, IsEmail, IsOptional} from "class-validator";
 
 export class RegisterUserDto {
     
-    @Validator.IsNotEmpty()
-    @Validator.IsString()
-    @Validator.Length(3, 50)
+    @IsString()
+    @Length(3, 50)
     username: string;
 
-    @Validator.IsNotEmpty()
-    @Validator.IsEmail({
+    @IsNotEmpty()
+    @IsEmail({
         allow_ip_domain: false,
         allow_utf8_local_part: true,
         require_tld: true
     })
     email: string;
 
-    @Validator.IsNotEmpty()
-    @Validator.IsString()
+    @IsNotEmpty()
+    @IsString()
     password: string;
 
-    @Validator.IsOptional()
-    @Validator.IsString()
+    @IsOptional()
+    @IsString()
     profilePicture: string | null
 }
