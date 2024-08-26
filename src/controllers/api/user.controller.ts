@@ -25,15 +25,21 @@ export class UserController {
         return this.userService.getAllUsers();
     }
 
+    @Get('search')
+    searchUsersByUsername(@Query('username') username: string): Promise<User[]> {
+    return this.userService.getSearch(username);
+    }
+
     @Get(':id')
     getUserById(@Param('id') userId: number): Promise<User | ApiResponse> {
         return this.userService.getUserById(userId);
     }
-
-    @Get('username')
-    getNameUser(@Query('username') username: string): Promise<User[]> {
+/*
+    @Get('search')
+    getNameUser(@Body() username: string): Promise<User[]> {
         return this.userService.getUsersUsernames(username)
     }
+*/
 
     @Patch(':id/edit')
     updateUser(@Param('id') userId: number, @Body() data: UpdateUserDto): Promise<User | ApiResponse> {

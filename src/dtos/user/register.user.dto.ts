@@ -1,6 +1,8 @@
 import {IsString, Length, IsNotEmpty, IsEmail, IsOptional} from "class-validator";
 
 export class RegisterUserDto {
+
+    userId?: number;
     
     @IsString()
     @Length(3, 50)

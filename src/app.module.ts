@@ -51,7 +51,7 @@ import { Like } from './entities/like.entity';
         Notification,
         User,
         Like,
-      ]
+      ],
     }),
     TypeOrmModule.forFeature([
       BannedUser,

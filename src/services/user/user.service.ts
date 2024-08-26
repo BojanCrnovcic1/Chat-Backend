@@ -17,6 +17,17 @@ export class UserService {
         return await this.userRepository.find();
     }
 
+    async getSearch(username: string): Promise<User[] | undefined> {
+        const users = await this.userRepository.find({
+            where: { username: Like(`%${username}%`) },
+           
+        });
+        if (users) {
+            return users;
+        }
+        return undefined;
+    }
+
     async getById(userId: number): Promise<User | ApiResponse> {
         const user = await this.userRepository.findOne({where: {userId: userId}});
         if (!user) {
@@ -37,13 +48,34 @@ export class UserService {
         return this.userRepository.findOne({ where: { userId } });
     }
 
-    async getUsersUsernames(username: string): Promise<User[] | undefined> {
-        const user = await this.userRepository.find({where: { username: Like(`%${username}%`)}});
-        if (user) {
-            return user;
+    async getUsersUsernames(username: string): Promise<User[]> {
+        try {
+            console.log('getUsersUsernames pozvan sa username:', username);
+            const users = await this.userRepository.find({
+                where: {
+                    username: Like(`%${username}%`)
+                }
+            });
+            console.log('Pronađeni korisnici:', users);
+            return users;
+        } catch (error) {
+            console.error('Greška pri pretrazi korisnika:', error);
+            throw new Error('Došlo je do greške prilikom pretrage korisnika.');
         }
-        return undefined;
     }
+
+    /*async getUsersUsernames(username: string): Promise<User[]> {
+        const users = await this.userRepository.find({where: { username: Like(`%${username}%`)}});
+        console.log('users: ', users);
+        return users;
+    }
++/
+ /*   async getUsersUsernames(username: string): Promise<User[]> {
+        const users = await this.userRepository.find({where: { username: username}});
+        console.log('users: ', users);
+        return users;
+        
+    } */
 
     async updateUser(userId: number, user: Partial<User>): Promise<void> {
         await this.userRepository.update(userId, user);
@@ -81,7 +113,6 @@ export class UserService {
         newPhoto.email = user.email;
         newPhoto.passwordHash = user.passwordHash;
         newPhoto.profilePicture = profilePicture;
-        console.log()
         const savedProfile = await this.userRepository.save(newPhoto);
         
         if (!savedProfile) {
@@ -91,8 +122,10 @@ export class UserService {
     }
 
     async registerUser(data: RegisterUserDto): Promise<User | ApiResponse> {
+        console.log('Checking if user exists with email:', data.email);
         const user = await this.getUserEmail(data.email);
         if (user) {
+            console.log('User found, returning error response');
             return new ApiResponse('error', -1002, 'User already exist!')
         }
 
@@ -120,4 +153,5 @@ export class UserService {
         }
         return await this.userRepository.remove(user);
     }
+
 }
