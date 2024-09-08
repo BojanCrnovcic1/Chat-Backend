@@ -64,19 +64,6 @@ export class UserService {
         }
     }
 
-    /*async getUsersUsernames(username: string): Promise<User[]> {
-        const users = await this.userRepository.find({where: { username: Like(`%${username}%`)}});
-        console.log('users: ', users);
-        return users;
-    }
-+/
- /*   async getUsersUsernames(username: string): Promise<User[]> {
-        const users = await this.userRepository.find({where: { username: username}});
-        console.log('users: ', users);
-        return users;
-        
-    } */
-
     async updateUser(userId: number, user: Partial<User>): Promise<void> {
         await this.userRepository.update(userId, user);
     }

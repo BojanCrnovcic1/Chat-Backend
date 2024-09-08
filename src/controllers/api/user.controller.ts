@@ -34,12 +34,6 @@ export class UserController {
     getUserById(@Param('id') userId: number): Promise<User | ApiResponse> {
         return this.userService.getUserById(userId);
     }
-/*
-    @Get('search')
-    getNameUser(@Body() username: string): Promise<User[]> {
-        return this.userService.getUsersUsernames(username)
-    }
-*/
 
     @Patch(':id/edit')
     updateUser(@Param('id') userId: number, @Body() data: UpdateUserDto): Promise<User | ApiResponse> {

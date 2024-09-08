@@ -1,5 +1,6 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { User } from "./user.entity";
+import { Notification } from "./notification.entity";
 
 @Index("friend_id", ["friendId"], {})
 @Entity("friend")
@@ -33,10 +34,14 @@ export class Friend {
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;
 
+  @OneToMany(() => Notification, notification => notification.friend)
+  notifications: Notification[];
+
   @ManyToOne(() => User, (users) => users.friends2, {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
+
   @JoinColumn([{ name: "friend_id", referencedColumnName: "userId" }])
   friend: User;
 }

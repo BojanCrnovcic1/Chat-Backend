@@ -30,4 +30,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             console.error('WebSocket server is not initialized');
         }
     }
+
+    
+
+    notifyUser(userId: number, message: string): void {
+        this.server.to(`user_${userId}`).emit('notification', message);
+    }
+
+    @SubscribeMessage('subscribeToNotifications')
+    handleSubscription(client: Socket, payload: { userId: number }): void {
+        client.join(`user_${payload.userId}`);
+    }
 }

@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { User } from "./user.entity";
+import { Friend } from "./friend.entity";
 
 @Index("user_id", ["userId"], {})
 @Entity("notification")
@@ -41,6 +42,11 @@ export class Notification {
     onDelete: "NO ACTION",
     onUpdate: "NO ACTION",
   })
+
+  @ManyToOne(() => Friend, friend => friend.notifications )
+  @JoinColumn([{ name: "friend_id", referencedColumnName: "friendId" }])
+  friend: Friend;
+  
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;
 }

@@ -32,6 +32,8 @@ import { NotificationController } from './controllers/api/notification.controlle
 import { NotificationService } from './services/notification/notification.service';
 import { LikeService } from './services/like/like.service';
 import { Like } from './entities/like.entity';
+import * as cors from 'cors';
+
 
 @Module({
   imports: [
@@ -100,6 +102,8 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AuthMiddleware)
             .exclude('auth/*')
-            .forRoutes('api/*')
+            .forRoutes('api/*');
+    consumer.apply(cors.default())
+            .forRoutes('*')
   }
 }
