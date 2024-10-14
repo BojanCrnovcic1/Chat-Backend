@@ -1,17 +1,44 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from "@nestjs/common";
+import { Request } from "express";
+import { AuthService } from "src/auth/auth.service";
 import { CreateChatRoomDto } from "src/dtos/chatRoom/create.chat.room.dto";
 import { ChatRoomMember } from "src/entities/chat-room-member.entity";
 import { ChatRoom } from "src/entities/chat-room.entity";
+import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { ChatRoomService } from "src/services/chatRoom/chat.room.service";
 
 @Controller('api/room')
 export class ChatRoomController {
-    constructor(private readonly chatRoomService: ChatRoomService) {}
+    constructor(
+      private readonly chatRoomService: ChatRoomService,
+      private authService: AuthService
+      ) {}
+
+      @Get('user/groups')
+      async getUserGroupRooms(@Req() req: Request): Promise<ChatRoom[]> {
+      const user = await this.authService.getCurrentUser(req);
+          if (!user || !user.userId) {
+              new ApiResponse('error', -1009, 'User not authorized');
+          }
+          const userId = user.userId;
+  
+      return this.chatRoomService.getUserGroupRoomS(userId);
+    }
 
     @Get()
     findAllRooms(): Promise<ChatRoom[]> {
         return this.chatRoomService.allRooms();
+    }
+
+    @Get(':id/currentRoom')
+    findCurrentUserRoom(@Param('id') userId: number): Promise<ChatRoom | ApiResponse> {
+      return this.chatRoomService.getUserCurrentRoom(userId);
+    }
+
+    @Get(':id/members')
+    getAllMembers(@Param('id') chatRoomId: number): Promise<User[] | ApiResponse> {
+      return this.chatRoomService.getRoomMembers(chatRoomId);
     }
 
     @Get(':id')
@@ -19,9 +46,24 @@ export class ChatRoomController {
         return this.chatRoomService.chatRoomById(chatRoomId);
     }
 
-    @Post()
-    createRoom(@Body() roomData: CreateChatRoomDto): Promise<ChatRoom | ApiResponse> {
-        return this.chatRoomService.createChatRoom(roomData);
+    @Get('check-room/:userId/:friendId')
+    async checkRoom(@Param('userId') userId: number,@Param('friendId') friendId: number,) {
+    const existingRoom = await this.chatRoomService.findRoomByUsers(userId, friendId);
+    if (existingRoom) {
+      return { roomId: existingRoom};
+    }
+    return { roomId: null };
+  }
+
+    @Post('createRoom')
+    async createRoom(@Body() roomData: CreateChatRoomDto, @Req() req: Request): Promise<ChatRoom | ApiResponse> {
+      const user = await this.authService.getCurrentUser(req);
+          if (!user || !user.userId) {
+              new ApiResponse('error', -1009, 'User not authorized');
+          }
+          const userId = user.userId;
+
+        return this.chatRoomService.createChatRoom(roomData, userId);
     }
 
     @Patch(':id')
@@ -39,7 +81,8 @@ export class ChatRoomController {
        @Body('userId1') userId1: number,
        @Body('userId2') userId2: number,
     ): Promise<ChatRoom | ApiResponse> {
-       return this.chatRoomService.findOrCreatePrivateChatRoom(userId1, userId2);
+        
+       return this.chatRoomService.createOrFindRoom(userId1, userId2);
   }
 
 
@@ -53,7 +96,13 @@ export class ChatRoomController {
   }
 
   @Delete(':id/members/:userId')
-  removeMember(@Param('id') chatRoomId: number, @Param('userId') userId: number): Promise<ChatRoomMember | ApiResponse> {
-    return this.chatRoomService.removeMember(chatRoomId, userId);
+  async removeMember(@Param('id') chatRoomId: number, @Req() req: Request, @Param('userId') userId: number): Promise<ChatRoomMember | ApiResponse> {
+    const user = await this.authService.getCurrentUser(req);
+          if (!user || !user.userId) {
+              new ApiResponse('error', -1009, 'User not authorized');
+          }
+          const adminId = user.userId;
+
+    return this.chatRoomService.removeMember(chatRoomId, adminId, userId);
   }
 }

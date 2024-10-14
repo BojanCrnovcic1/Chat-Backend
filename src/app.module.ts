@@ -54,6 +54,7 @@ import * as cors from 'cors';
         User,
         Like,
       ],
+     
     }),
     TypeOrmModule.forFeature([
       BannedUser,

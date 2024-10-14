@@ -19,10 +19,10 @@ export class Message {
   @PrimaryGeneratedColumn({ type: "int", name: "message_id" })
   messageId: number;
 
-  @Column({type: "int",  name: "chat_room_id", nullable: true })
+  @Column({type: "int",  name: "chat_room_id", nullable: false })
   chatRoomId: number | null;
 
-  @Column({type: "int",  name: "user_id", nullable: true })
+  @Column({type: "int",  name: "user_id", nullable: false })
   userId: number | null;
 
   @Column("text", { name: "content", nullable: true })

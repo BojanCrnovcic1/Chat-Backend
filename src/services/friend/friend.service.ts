@@ -1,28 +1,94 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Friend } from "src/entities/friend.entity";
-import { User } from "src/entities/user.entity";
+
 import { ApiResponse } from "src/misc/api.response.class";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { NotificationService } from "../notification/notification.service";
+import { User } from "src/entities/user.entity";
+import { Message } from "src/entities/message.entity";
+import { Notification } from "src/entities/notification.entity";
 
 @Injectable()
 export class FriendService {
     constructor(
         @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
+        @InjectRepository(Notification) private readonly notificationRepository: Repository<Notification>,
         private readonly notificationService: NotificationService,
     ) {}
 
-    async getFreands(userId: number): Promise<Friend[]> {
-        return await this.friendRepository.find({
-            where: [
-                {userId, status: 'accepted'},
-                {friendId: userId, status: 'accepted'}
-            ],
-            relations: ['friend', 'user']
-        })
+    async getFriends(userId: number): Promise<Friend[]> {
+        const friends = await this.friendRepository
+            .createQueryBuilder('friend')
+            .where('friend.userId = :userId OR friend.friendId = :userId', { userId })
+            .andWhere('friend.status = :status', { status: 'accepted' })
+            .leftJoinAndSelect('friend.user', 'user')  
+            .leftJoinAndSelect('friend.friend', 'friendUser') 
+            .getMany();
+    
+        return friends;
     }
 
+    async countUnreadMessagesFromFriends(userId: number): Promise<number> {
+        const friends = await this.friendRepository.find({
+          where: {
+            userId: userId,
+            status: 'accepted',
+          },
+          relations: ['friend'],
+        });
+    
+        const friendIds = friends.map((friend) => friend.friend.userId);
+
+        console.log('Friends found: ', friendIds); 
+    
+        if (friendIds.length === 0) {
+          return 0; // Ako korisnik nema prijatelja, vrati 0 nepročitanih poruka
+        }
+    
+        const unreadNotifications = await this.notificationRepository
+              .createQueryBuilder('notification')
+              .leftJoinAndSelect('notification.friend', 'friend')  // Povezujemo tabelu Friend
+              .where('notification.userId = :userId', { userId })
+              .andWhere('notification.isRead = false')
+              .andWhere('friend.friendId IN (:...friendIds)', { friendIds })  // Koristi friend.friendId
+              .getMany();
+
+        console.log('Unread notifications:', unreadNotifications);
+
+        return unreadNotifications.length;
+      }
+    /*async getUnreadMessagesCountForFriends(userId: number): Promise<{ friendId: number; unreadCount: number }[]> {
+        const user = await this.userRepository.findOne({ where: { userId } });
+        console.log('user: ', user)
+    
+        if (!user) {
+            throw new NotFoundException('User not found.');
+        }
+    
+        const friends = await this.friendRepository.find({
+            where: [
+                { userId, status: 'accepted' },
+                { friendId: userId, status: 'accepted' },
+            ],
+        });
+
+        console.log('friends-list: ', friends)
+    
+        const unreadMessagesCountList = [];
+    
+        for (const friend of friends) {
+            const friendId = friend.userId === userId ? friend.friendId : friend.userId;
+    
+            const unreadMessagesCount = await this.notificationService.getUnreadCountForFriend(friendId, userId);
+    
+            unreadMessagesCountList.push({ friendId, unreadCount: unreadMessagesCount });
+        }
+        console.log('unread message in frined service: ', unreadMessagesCountList)
+        return unreadMessagesCountList;
+    }
+    */
+    
     async sendFriendRequest(userId: number, friendId: number): Promise<Friend | ApiResponse> {
         if (userId === friendId) {
             return new ApiResponse('error', -4005, 'You cannot send a friend request to yourself.');
@@ -55,6 +121,7 @@ export class FriendService {
     async acceptFriendRequest(userId: number, friendId: number): Promise<Friend | ApiResponse> {
         const friendRequest = await this.friendRepository.findOne({
             where: { userId: friendId, friendId: userId, status: 'pending' },
+            relations: ['friend', 'user'],
            
         });
         console.log('frined Request: ', friendRequest)

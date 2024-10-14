@@ -5,7 +5,7 @@ import { ChatRoomMember } from "src/entities/chat-room-member.entity";
 import { ChatRoom } from "src/entities/chat-room.entity";
 import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 @Injectable()
 export class ChatRoomService {
@@ -15,16 +15,70 @@ export class ChatRoomService {
         @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
 
+
+    async getUserGroupRooms(userId: number): Promise<ChatRoom[]> {
+        const rooms = await this.chatRoomRepository.find({
+            where: { isGroup: true },
+            relations: ['chatRoomMembers', 'chatRoomMembers.user'],
+        });
+
+        const userGropuRooms = rooms.filter(room => 
+            room.chatRoomMembers.some(member => member.user.userId === userId))
+        
+        return userGropuRooms;
+    }
+    
+
+    async getUserGroupRoomS(userId: number): Promise<ChatRoom[]> {
+        const rooms = await this.chatRoomRepository
+            .createQueryBuilder('room')
+            .innerJoinAndSelect('room.chatRoomMembers', 'members')
+            .where('members.userId = :userId', { userId })
+            .andWhere('room.isGroup = :isGroup', { isGroup: true })
+            .getMany();
+            return rooms;
+    }
+    
     async allRooms(): Promise<ChatRoom[]> {
         return await this.chatRoomRepository.find({
             relations: ['bannedUsers', 'chatRoomMembers', 'messages']
         });
     }
 
+    async getUserCurrentRoom(userId: number): Promise<ChatRoom | ApiResponse> {
+        const chatRoomMember = await this.chatRoomMemberRepository.findOne({
+            where: { userId },
+            relations: ['chatRoom'],
+        });
+
+        if (!chatRoomMember) {
+            return new ApiResponse('error', -3008, `User with ID ${userId} is not currently in any room.`);
+        }
+    
+        return chatRoomMember.chatRoom;
+    }
+    
+
+    async getRoomMembers(chatRoomId: number): Promise<User[] | ApiResponse> {
+        
+        const chatRoomMembers = await this.chatRoomMemberRepository.find({
+            where: { chatRoomId },
+            relations: ['user'], 
+        });
+    
+        if (!chatRoomMembers.length) {
+            return new ApiResponse('error', -3005,`No members found for chat room ID ${chatRoomId}`);
+        }
+    
+        const users = chatRoomMembers.map(member => member.user);
+    
+        return users;
+    }
+
     async chatRoomById(chatRoomId: number): Promise<ChatRoom | ApiResponse> {
         const chatRoom = await this.chatRoomRepository.findOne({
             where: { chatRoomId: chatRoomId },
-            relations: ['bannedUsers', 'chatRoomMembers', 'messages']
+            relations: ['bannedUsers', 'chatRoomMembers', 'chatRoomMembers.user', 'messages']
         });
 
         if (!chatRoom) {
@@ -32,17 +86,65 @@ export class ChatRoomService {
         }
         return chatRoom;
     }
+    
+    async findRoomByUsers(userId1: number, userId2: number): Promise<ChatRoom | undefined> {
+        const room = await this.chatRoomRepository
+          .createQueryBuilder("chatRoom")
+          .innerJoin("chatRoom.chatRoomMembers", "chatRoomMembers")
+          .where("chatRoomMembers.userId IN (:...userIds)", { userIds: [userId1, userId2] })
+          .groupBy("chatRoom.chatRoomId")
+          .having("COUNT(chatRoomMembers.userId) = 2")
+          .getOne();
+        
+        return room;
+      }
 
-    async createChatRoom(dataChatRoom: CreateChatRoomDto): Promise<ChatRoom | ApiResponse> {
+      async createOrFindRoom(userId1: number, userId2: number): Promise<ChatRoom> {
+        let room = await this.findRoomByUsers(userId1, userId2);
+      
+        if (!room) {
+          room = new ChatRoom();
+          room.isGroup = false;
+          room.createdAt = new Date();
+      
+          room = await this.chatRoomRepository.save(room);
+      
+          if (room) {
+            const chatRoomMember1 = new ChatRoomMember();
+            chatRoomMember1.chatRoom = room;
+            chatRoomMember1.userId = userId1;
+            chatRoomMember1.role = "member";
+            await this.chatRoomMemberRepository.save(chatRoomMember1);
+      
+            const chatRoomMember2 = new ChatRoomMember();
+            chatRoomMember2.chatRoom = room;
+            chatRoomMember2.userId = userId2;
+            chatRoomMember2.role = "member";
+            await this.chatRoomMemberRepository.save(chatRoomMember2);
+          }
+        }
+        return room;
+      }
+      
+      async createChatRoom(dataChatRoom: CreateChatRoomDto, creatorId: number): Promise<ChatRoom | ApiResponse> {
         const newChatRoom = this.chatRoomRepository.create(dataChatRoom);
         const savedChatRoom = await this.chatRoomRepository.save(newChatRoom);
-
+    
         if (!savedChatRoom) {
             return new ApiResponse('error', -3002, 'Chat room not saved.');
         }
+    
+        const chatRoomMember = new ChatRoomMember();
+        chatRoomMember.chatRoom = savedChatRoom;
+        chatRoomMember.user = { userId : creatorId } as User; 
+        chatRoomMember.role = 'admin'; 
+        
+        await this.chatRoomMemberRepository.save(chatRoomMember);
+    
         return savedChatRoom;
     }
-
+    
+    
     async updateChatRoom(chatRoomId: number, updateChatRoom: CreateChatRoomDto): Promise<ChatRoom | ApiResponse> {
         const chatRoom = await this.chatRoomRepository.findOne({
             where: { chatRoomId: chatRoomId },
@@ -66,42 +168,6 @@ export class ChatRoomService {
         }
         await this.chatRoomRepository.delete(chatRoomId);
         return new ApiResponse('success', 0, 'Chat room deleted.');
-    }
-
-    async findOrCreatePrivateChatRoom(userId1: number, userId2: number): Promise<ChatRoom | ApiResponse> {
-        let chatRoom = await this.chatRoomRepository.createQueryBuilder('chatRoom')
-            .innerJoinAndSelect('chatRoom.chatRoomMembers', 'chatRoomMember1', 'chatRoomMember1.userId = :userId1', { userId1 })
-            .innerJoinAndSelect('chatRoom.chatRoomMembers', 'chatRoomMember2', 'chatRoomMember2.userId = :userId2', { userId2 })
-            .where('chatRoom.isGroup = :isGroup', { isGroup: false })
-            .getOne();
-
-        if (!chatRoom) {
-            chatRoom = new ChatRoom();
-            chatRoom.isGroup = false;
-            chatRoom.createdAt = new Date();
-            chatRoom.chatRoomMembers = [];
-
-            const user1 = await this.userRepository.findOne({where: {userId: userId1}});
-            const user2 = await this.userRepository.findOne({where: {userId: userId2}});
-
-            if (!user1 || !user2) {
-                throw new NotFoundException('One or both users not found');
-            }
-
-            const member1 = new ChatRoomMember();
-            member1.user = user1;
-            member1.role = 'member';
-
-            const member2 = new ChatRoomMember();
-            member2.user = user2;
-            member2.role = 'member';
-
-            chatRoom.chatRoomMembers.push(member1, member2);
-
-            await this.chatRoomRepository.save(chatRoom);
-        }
-
-        return chatRoom;
     }
 
     async addMember(chatRoomId: number, userId: number, role: 'member' | 'admin' = 'member'): Promise<ChatRoomMember | ApiResponse> {
@@ -129,13 +195,33 @@ export class ChatRoomService {
         return chatRoomMember;
     }
 
-    async removeMember(chatRoomId: number, userId: number): Promise<ApiResponse> {
-        const chatRoomMember = await this.chatRoomMemberRepository.findOne({ where: { chatRoomId, userId } });
-        if (!chatRoomMember) {
-            return new ApiResponse('error', -3006, 'Chat room member is not found.');
+    async removeMember(chatRoomId: number, requestingUserId: number, userId: number): Promise<ApiResponse> {
+        const chatRoomMemberToRemove = await this.chatRoomMemberRepository.findOne({ 
+            where: { chatRoomId, user: { userId } },
+            relations: ['user'] 
+        });
+        
+        if (!chatRoomMemberToRemove) {
+            return new ApiResponse('error', -3006, 'Chat room member not found.');
         }
-
-        await this.chatRoomMemberRepository.remove(chatRoomMember);
+    
+        if (requestingUserId === userId) {
+            await this.chatRoomMemberRepository.remove(chatRoomMemberToRemove);
+            return new ApiResponse('success', 0, 'You have left the chat room.');
+        }
+    
+        const requestingUser = await this.chatRoomMemberRepository.findOne({ 
+            where: { chatRoomId, user: { userId: requestingUserId } },
+            relations: ['user'] 
+        });
+    
+        if (!requestingUser || requestingUser.role !== 'admin') {
+            return new ApiResponse('error', -3007, 'Only admins can remove other members.');
+        }
+    
+        await this.chatRoomMemberRepository.remove(chatRoomMemberToRemove);
         return new ApiResponse('success', 0, 'Chat room member removed.');
     }
+    
+    
 }

@@ -19,9 +19,9 @@ export class MessageController {
         private readonly likeService: LikeService,
         private readonly authService: AuthService) {}
 
-    @Get()
-    async getAll(): Promise<Message[]> {
-        return await this.messageService.allMessage();
+    @Get(':id/rooms')
+    async getAll(@Param('id') chatRoomId: number): Promise<Message[]> {
+        return await this.messageService.allMessage(chatRoomId);
     }
 
     @Get(':id')
@@ -35,8 +35,14 @@ export class MessageController {
     }
 
     @Post('create')
-    async createMessage(@Body() data: CreateMessageDto): Promise<Message | ApiResponse> {
-        return await this.messageService.create(data);
+    async createMessage(@Body() data: CreateMessageDto, @Req() req: Request): Promise<Message | ApiResponse> {
+        const user = await this.authService.getCurrentUser(req);
+        
+        if (!user || !user.userId) {
+            return new ApiResponse('error', -1009, 'User not authorized');
+        }
+        const userId = user.userId;
+        return await this.messageService.create(data, userId);
     }
 
     @Post('upload')
@@ -69,7 +75,7 @@ export class MessageController {
             }
         }
     }))
-    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() data: CreateMessageDto): Promise<Message | ApiResponse> {
+    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() data: CreateMessageDto, @Req() req: Request): Promise<Message | ApiResponse> {
         if (!['image', 'video', 'audio'].includes(data.contentType)) {
             return new ApiResponse('error', -2005, 'Invalid content type for file upload');
         }
@@ -77,9 +83,16 @@ export class MessageController {
         const filePath = file.path;
         const filename = basename(filePath);
     
-        data.content = `/uploads/${filename}`;
+        data.content = `${filename}`;
+
+        const user = await this.authService.getCurrentUser(req);
+        
+        if (!user || !user.userId) {
+            return new ApiResponse('error', -1009, 'User not authorized');
+        }
+        const userId = user.userId;
     
-        return await this.messageService.create(data);
+        return await this.messageService.create(data, userId);
     }
     
     @Post('like/:id')
