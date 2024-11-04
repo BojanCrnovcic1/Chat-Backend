@@ -31,8 +31,8 @@ export class MessageController {
 
     @Get('likes/:messageId')
     async getAllLikes(@Param('messageId') messageId: number): Promise<Like[] | ApiResponse> {
-        return await this.likeService.getAllLikes(messageId)
-    }
+        return await this.likeService.getAllLikes(messageId);
+    };
 
     @Post('create')
     async createMessage(@Body() data: CreateMessageDto, @Req() req: Request): Promise<Message | ApiResponse> {

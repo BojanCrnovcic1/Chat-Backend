@@ -16,7 +16,8 @@ export class LikeService {
 
     async getAllLikes(messageId: number): Promise<Like[] | ApiResponse> {
         try {
-            const likes = await this.likeRepository.find({where: {messageId: messageId}});
+            const likes = await this.likeRepository.find({where: {messageId: messageId}, 
+            relations: ['message', 'user']});
             return likes;
         } catch (error) {
             return new ApiResponse('error', -6003, 'Failed to get likes.');
@@ -30,15 +31,12 @@ export class LikeService {
             return new ApiResponse('error', -1001, 'User not found!');
         }
 
-        const message = await this.messageRepository.findOne({ where: { messageId: messageId } });
+        const message = await this.messageRepository.findOne({ where: { messageId: messageId },
+        relations: ['likes'] });
         if (!message) {
             return new ApiResponse('error', -2001, 'Message is not found.');
         }
 
-        const existingLike = await this.likeRepository.findOne({ where: { userId: userId, messageId: messageId } });
-        if (existingLike) {
-            return new ApiResponse('error', -6008, 'User has already liked this message.');
-        }
 
         const newLike = new Like();
         newLike.user = user;

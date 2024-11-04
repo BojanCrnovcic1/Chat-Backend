@@ -28,17 +28,14 @@ export class Friend {
   createdAt: Date | null;
 
   @ManyToOne(() => User, (users) => users.friends, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;
 
-  @OneToMany(() => Notification, notification => notification.friend)
-  notifications: Notification[];
-
   @ManyToOne(() => User, (users) => users.friends2, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
 

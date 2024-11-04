@@ -24,7 +24,7 @@ export class NotificationController {
            new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.notificationService.countUnreadMessagesFromFriends(userId);         
+        return await this.notificationService.getUnreadNotificationsCountPerFriend(userId);         
     }
 
     @Patch(':userId/read-all')

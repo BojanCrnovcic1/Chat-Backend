@@ -20,14 +20,14 @@ export class BannedUser {
   bannedAt: Date | null;
 
   @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.bannedUsers, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
   chatRoom: ChatRoom;
 
   @ManyToOne(() => User, (users) => users.bannedUsers, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])

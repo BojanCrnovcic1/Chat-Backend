@@ -34,7 +34,6 @@ import { LikeService } from './services/like/like.service';
 import { Like } from './entities/like.entity';
 import * as cors from 'cors';
 
-
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -54,7 +53,10 @@ import * as cors from 'cors';
         User,
         Like,
       ],
-     
+      charset: 'utf8mb4',
+      extra: {
+         collation: 'utf8mb4_unicode_ci',
+      }  
     }),
     TypeOrmModule.forFeature([
       BannedUser,
@@ -97,7 +99,7 @@ import * as cors from 'cors';
   ],
   exports: [
     AuthService,
-  ]
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

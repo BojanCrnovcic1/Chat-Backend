@@ -77,11 +77,7 @@ export class NotificationService {
         }));
     }
     
-    
-    
-    
-    
-    
+     
     async createNotification(userId: number, message: string): Promise<Notification | ApiResponse> {
         const notification = this.notificationRepository.create({
             userId,
@@ -106,9 +102,39 @@ export class NotificationService {
 
     async getNotifications(userId: number): Promise<Notification[]> {
         return await this.notificationRepository.find(
-            {where: {userId: userId}
+            {where: {userId: userId}, relations: ['user.messages']
         })
     }
+
+    async getUnreadNotificationsCountPerFriend(userId: number): Promise<{ [friendId: number]: number }> {
+        const userWithNotifications = await this.notificationRepository.find({
+            where: { userId: userId },
+            relations: ['user.friends']
+        });
+    
+        console.log('userWithNotifications:', userWithNotifications);
+    
+        const unreadCounts: { [friendId: number]: number } = {};
+    
+        userWithNotifications.forEach(notification => {
+            console.log('Processing notification:', notification);
+            notification.user.friends.forEach(friend => {
+                console.log('Checking friend:', friend);
+                if (notification.isRead === false && notification.message.includes(friend.friendId.toString())) {
+                    if (!unreadCounts[friend.friendId]) {
+                        unreadCounts[friend.friendId] = 0;
+                    }
+                    unreadCounts[friend.friendId]++;
+                }
+            });
+        });
+    
+        console.log('Unread notification counts per friend:', unreadCounts);
+        return unreadCounts;
+    }
+    
+    
+    
     
 
       async getUnreadNotifications(userId: number): Promise<{ count: number; notifications: Notification[] }> {

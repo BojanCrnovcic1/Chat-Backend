@@ -28,14 +28,14 @@ export class ChatRoomMember {
   joinedAt: Date | null;
 
   @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.chatRoomMembers, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
   chatRoom: ChatRoom;
 
   @ManyToOne(() => User, (users) => users.chatRoomMembers, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])

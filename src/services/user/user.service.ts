@@ -29,7 +29,9 @@ export class UserService {
     }
 
     async getById(userId: number): Promise<User | ApiResponse> {
-        const user = await this.userRepository.findOne({where: {userId: userId}});
+        const user = await this.userRepository.findOne({
+            where: {userId: userId},
+            relations: ['friends', 'friends2', 'notifications', 'bannedUsers']});
         if (!user) {
             return new ApiResponse('error', -1001, 'User not found!');
         }
@@ -45,7 +47,8 @@ export class UserService {
     }
 
     async getUserById(userId: number): Promise<User | null> {
-        return this.userRepository.findOne({ where: { userId } });
+        return this.userRepository.findOne(
+            { where: { userId }, relations: ['bannedUsers', 'friends', 'friends2']});
     }
 
     async getUsersUsernames(username: string): Promise<User[]> {
@@ -56,7 +59,6 @@ export class UserService {
                     username: Like(`%${username}%`)
                 }
             });
-            console.log('Pronađeni korisnici:', users);
             return users;
         } catch (error) {
             console.error('Greška pri pretrazi korisnika:', error);

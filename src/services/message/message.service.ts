@@ -22,7 +22,7 @@ export class MessageService {
     async allMessage(chatRoomId: number): Promise<Message[]> {
         return await this.messageRepository.find({
             where: {chatRoomId: chatRoomId},
-            relations: ['chatRoom', 'user', 'likes', 'parentMessage', 'messages']
+            relations: ['chatRoom.bannedUsers', 'user.bannedUsers', 'likes', 'parentMessage', 'messages']
         });
     }
 
@@ -42,7 +42,6 @@ export class MessageService {
             return new ApiResponse('error', -2005, 'Chat room not found.');
         }
     
-        // Validacija sadržaja poruke
         if (contentType === 'link') {
             const urlPattern = new RegExp('^(https?:\\/\\/)?'+ 
             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ 
@@ -75,7 +74,6 @@ export class MessageService {
         const savedMessage = await this.messageRepository.save(newMessage);
         this.chatGateway.broadcastMessage('receiveMessage', savedMessage);
     
-        // Dobijanje podataka o pošiljaocu
         const sender = await this.userRepository.findOne({ where: { userId: senderId } });
         if (!sender) {
             return new ApiResponse('error', -1009, 'Sender not found');

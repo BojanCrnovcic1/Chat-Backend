@@ -37,8 +37,10 @@ export class AuthService {
             userId: user.userId,
             email: user.email,
         };
+
+        const expiresIn = 3600;
     
-        const token = this.jwtService.sign(userFarToken);    
+        const token = this.jwtService.sign(userFarToken, );    
     
         user.onlineStatus = true;
         await this.userService.updateUser(user.userId, user);

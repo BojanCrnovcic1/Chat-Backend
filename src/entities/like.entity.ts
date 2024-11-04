@@ -23,14 +23,14 @@ export class Like {
   messageId: number;
 
   @ManyToOne(() => Message, (message) => message.likes, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "message_id", referencedColumnName: "messageId" }])
   message: Message;
 
   @ManyToOne(() => User, (user) => user.likes, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])

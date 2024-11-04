@@ -31,7 +31,7 @@ export class UserController {
     }
 
     @Get(':id')
-    getUserById(@Param('id') userId: number): Promise<User | ApiResponse> {
+    getUserById(@Param('id') userId: number): Promise<User | ApiResponse> {   
         return this.userService.getUserById(userId);
     }
 
@@ -79,14 +79,26 @@ export class UserController {
         return await this.authService.logout(user.userId);
     }
 
-    @Post('ban')
-    banUser(@Body('chatRoomId') chatRoomId: number, @Body('userId') userId: number): Promise<BannedUser | ApiResponse> {
-        return this.bannedUserService.banUser(chatRoomId, userId);
+    @Post(':chatRoomId/ban/:userId')
+    async banUser(@Param('chatRoomId') chatRoomId: number, @Param('userId') userId: number, @Req() req: Request): Promise<BannedUser | ApiResponse> {
+        const currentUser = await this.authService.getCurrentUser(req);
+        
+        if (!currentUser || !currentUser.userId) {
+            return new ApiResponse('error', -1009, 'User not authorized');
+        }
+        const curentUserId = currentUser.userId;
+        return this.bannedUserService.banUser(chatRoomId, userId, curentUserId);
     }
 
-    @Delete('unban')
-    unbanUser(@Body('chatRoomId') chatRoomId: number, @Body('userId') userId: number): Promise<BannedUser | ApiResponse> {
-        return this.bannedUserService.unbanUser(chatRoomId, userId);
+    @Delete(':chatRoomId/unban/:userId')
+    async unbanUser(@Param('chatRoomId') chatRoomId: number, @Param('userId') userId: number, @Req() req: Request): Promise<BannedUser | ApiResponse> {
+        const currentUser = await this.authService.getCurrentUser(req);
+        
+        if (!currentUser || !currentUser.userId) {
+            return new ApiResponse('error', -1009, 'User not authorized');
+        }
+        const curentUserId = currentUser.userId;
+        return this.bannedUserService.unbanUser(chatRoomId, userId, curentUserId);
     }
 
     @Delete(':id')

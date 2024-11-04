@@ -13,13 +13,13 @@ export class FriendController {
      ) {}
 
     @Get(':id/friends')
-    async allFriends(@Req() req: Request, ): Promise<Friend[]> {
+    async allFriends(@Req() req: Request): Promise<Friend[]> {
         const user =  await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
            new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.friendService.getFriends(userId);
+        return await this.friendService.getFriendS(userId);
     }
 
     @Get(':userId/unread-messages-count')
@@ -29,7 +29,7 @@ export class FriendController {
            new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.friendService.countUnreadMessagesFromFriends(userId);
+        return await this.friendService.getFriendsWithUnreadNotifications(userId);
     }
 
     @Post('send-request')

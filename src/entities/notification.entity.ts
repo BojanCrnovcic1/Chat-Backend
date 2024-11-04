@@ -1,4 +1,3 @@
-
 import {
   Column,
   Entity,
@@ -7,11 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Friend } from "./friend.entity";
 import { User } from "./user.entity";
 
 @Index("user_id", ["userId"], {})
-@Index("fk_notification_friend_id", ["friendId"], {})
 @Entity("notification", { schema: "chat" })
 export class Notification {
   @PrimaryGeneratedColumn({ type: "int", name: "notification_id" })
@@ -19,9 +16,6 @@ export class Notification {
 
   @Column("int", { name: "user_id", nullable: true })
   userId: number | null;
-
-  @Column("int", { name: "friend_id", nullable: true })
-  friendId: number | null;
 
   @Column("varchar", { name: "message", nullable: true, length: 255 })
   message: string | null;
@@ -41,15 +35,8 @@ export class Notification {
   })
   createdAt: Date | null;
 
-  @ManyToOne(() => Friend, (friend) => friend.notifications, {
-    onDelete: "NO ACTION",
-    onUpdate: "NO ACTION",
-  })
-  @JoinColumn([{ name: "friend_id", referencedColumnName: "friendId" }])
-  friend: Friend;
-
   @ManyToOne(() => User, (user) => user.notifications, {
-    onDelete: "NO ACTION",
+    onDelete: "CASCADE",
     onUpdate: "NO ACTION",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
