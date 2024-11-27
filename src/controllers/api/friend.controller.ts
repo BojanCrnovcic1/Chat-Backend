@@ -10,23 +10,23 @@ export class FriendController {
     constructor( 
         private friendService: FriendService,
         private authService: AuthService,
-     ) {}
+    ) {}
 
     @Get(':id/friends')
-    async allFriends(@Req() req: Request): Promise<Friend[]> {
-        const user =  await this.authService.getCurrentUser(req);
+    async allFriends(@Req() req: Request): Promise<Friend[] | ApiResponse> {
+        const user = await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
-           new ApiResponse('error', -1009, 'User not authorized');
+            return new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.friendService.getFriendS(userId);
+        return await this.friendService.getFriends(userId);
     }
 
     @Get(':userId/unread-messages-count')
-    async getUnreadMessagesCountForFriends (@Req() req: Request) {
-        const user =  await this.authService.getCurrentUser(req);
+    async getUnreadMessagesCountForFriends(@Req() req: Request): Promise<any[] | ApiResponse> {
+        const user = await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
-           new ApiResponse('error', -1009, 'User not authorized');
+            return new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
         return await this.friendService.getFriendsWithUnreadNotifications(userId);
@@ -34,7 +34,7 @@ export class FriendController {
 
     @Post('send-request')
     async sendRequest(@Req() req: Request, @Body('friendId') friendId: number): Promise<Friend | ApiResponse> {
-        const user =  await this.authService.getCurrentUser(req);
+        const user = await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
             return new ApiResponse('error', -1009, 'User not authorized');
         }
@@ -44,7 +44,7 @@ export class FriendController {
 
     @Post('accept-request')
     async acceptRequest(@Req() req: Request, @Body('friendId') friendId: number): Promise<Friend | ApiResponse> {
-        const user =  await this.authService.getCurrentUser(req);
+        const user = await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
             return new ApiResponse('error', -1009, 'User not authorized');
         }
@@ -54,11 +54,11 @@ export class FriendController {
 
     @Delete('reject-request')
     async rejectRequest(@Req() req: Request, @Body('friendId') friendId: number): Promise<ApiResponse> {
-        const user =  await this.authService.getCurrentUser(req);
+        const user = await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
             return new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.friendService.rejectFriendRequest(userId, friendId)
+        return await this.friendService.rejectFriendRequest(userId, friendId);
     }
 }

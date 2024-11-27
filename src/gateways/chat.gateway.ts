@@ -33,8 +33,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     
 
-    notifyUser(userId: number, message: string): void {
-        this.server.to(`user_${userId}`).emit('notification', message);
+    notifyUser(userId: number, message: string, chatRoomId?: number, messageId?: number): void {
+        this.server.to(`user_${userId}`).emit('notification', {message, chatRoomId, messageId});
     }
 
     @SubscribeMessage('subscribeToNotifications')

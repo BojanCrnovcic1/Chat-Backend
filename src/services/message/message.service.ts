@@ -22,7 +22,7 @@ export class MessageService {
     async allMessage(chatRoomId: number): Promise<Message[]> {
         return await this.messageRepository.find({
             where: {chatRoomId: chatRoomId},
-            relations: ['chatRoom.bannedUsers', 'user.bannedUsers', 'likes', 'parentMessage', 'messages']
+            relations: ['chatRoom.bannedUsers', 'user.bannedUsers', 'likes', 'parentMessage', 'messages', 'notifications']
         });
     }
 
@@ -92,16 +92,19 @@ export class MessageService {
                 .filter(participant => participant.userId !== senderId);
     
             for (const participant of participants) {
+
                 await this.notificationService.createNotification(
                     participant.userId,
                     `Message from ${senderName}: ${content}`, 
+                    chatRoomId,
+                    savedMessage.messageId
                 );
             }
         }
     
         return savedMessage;
     }
-    
+
     async update(messageId: number, message: Message): Promise<Message | ApiResponse> {
         const existingMessage = await this.messageRepository.findOne({ where: { messageId: messageId } });
         if (!existingMessage) {

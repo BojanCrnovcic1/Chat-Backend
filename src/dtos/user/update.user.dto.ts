@@ -9,9 +9,12 @@ export class UpdateUserDto {
 
     @IsNotEmpty()
     @IsString()
+    @Length(8, 255)
     password: string;
 
     @IsOptional()
     @IsString()
-    prifilePicture: string | null;
+    profilePicture: string | null;
+
+    onlineStatus: boolean;
 }

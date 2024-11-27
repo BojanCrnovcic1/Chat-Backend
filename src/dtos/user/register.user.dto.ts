@@ -1,4 +1,4 @@
-import {IsString, Length, IsNotEmpty, IsEmail, IsOptional} from "class-validator";
+import {IsString, Length, IsNotEmpty, IsEmail, IsOptional, IsDate} from "class-validator";
 
 export class RegisterUserDto {
 
@@ -23,4 +23,5 @@ export class RegisterUserDto {
     @IsOptional()
     @IsString()
     profilePicture: string | null
+
 }

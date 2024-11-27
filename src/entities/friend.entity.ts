@@ -1,44 +1,53 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { User } from "./user.entity";
-import { Notification } from "./notification.entity";
 
-@Index("friend_id", ["friendId"], {})
+@Index("fk_friend_receiver_id", ["receiverId"], {})
+@Index("fk_friend_sender_id", ["senderId"], {})
 @Entity("friend")
 export class Friend {
-  @Column({type: "int",  primary: true, name: "user_id" })
-  userId: number;
-
-  @Column({type: "int",  primary: true, name: "friend_id" })
+  @PrimaryGeneratedColumn({ type: "int", name: "friend_id", unsigned: true })
   friendId: number;
+
+  @Column({ type: "int", name: "sender_id", unsigned: true })
+  senderId: number;
+
+  @Column({ type: "int", name: "receiver_id", unsigned: true })
+  receiverId: number;
 
   @Column({
     type: "enum", 
     nullable: true,
-    enum: ["pending", "accepted", "blocked"],
+    enum: ["pending", "accepted", "rejected"],
     default: () => "'pending'",
   })
-  status: "pending" | "accepted" | "blocked" | null;
+  status: "pending" | "accepted" | "rejected" | null;
 
   @Column({
     type: "timestamp", 
     name: "created_at",
     nullable: true,
-    default: () => "CURRENT_TIMESTAMP",
+    default: () => "'now()'",
   })
   createdAt: Date | null;
 
-  @ManyToOne(() => User, (users) => users.friends, {
+  @ManyToOne(() => User, (user) => user.friends, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
-  @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
-  user: User;
+  @JoinColumn([{ name: "receiver_id", referencedColumnName: "userId" }])
+  receiver: User;
 
-  @ManyToOne(() => User, (users) => users.friends2, {
+  @ManyToOne(() => User, (user) => user.friends2, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
-
-  @JoinColumn([{ name: "friend_id", referencedColumnName: "userId" }])
-  friend: User;
+  @JoinColumn([{ name: "sender_id", referencedColumnName: "userId" }])
+  sender: User;
 }

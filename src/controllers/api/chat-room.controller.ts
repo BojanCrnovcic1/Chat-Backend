@@ -7,11 +7,13 @@ import { ChatRoom } from "src/entities/chat-room.entity";
 import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { ChatRoomService } from "src/services/chatRoom/chat.room.service";
+import { MessageService } from "src/services/message/message.service";
 
 @Controller('api/room')
 export class ChatRoomController {
     constructor(
       private readonly chatRoomService: ChatRoomService,
+      private readonly messageService: MessageService,
       private authService: AuthService
       ) {}
 

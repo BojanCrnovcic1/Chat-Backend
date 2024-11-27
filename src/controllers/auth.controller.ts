@@ -7,11 +7,13 @@ import { AuthService } from "src/auth/auth.service";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
 import { Request, Response } from "express";
 import { JwtService } from "src/auth/jwt.service";
+import { AdminService } from "src/services/administrator/admin.service";
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly userService: UserService,
+        private readonly adminService: AdminService,
         private readonly authService: AuthService,
         private readonly jwtService: JwtService,
     ) {}
@@ -92,5 +94,6 @@ async updateOnlineStatus(@Headers('authorization') authorization: string, @Body(
 
     return new ApiResponse('success', 0, 'Online status updated');
 }
+
 
 }

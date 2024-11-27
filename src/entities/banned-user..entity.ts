@@ -2,33 +2,28 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 import { ChatRoom } from "./chat-room.entity";
 import { User } from "./user.entity";
 
-@Index("user_id", ["userId"], {})
+@Index("fk_banned_user_user_id", ["userId"], {})
 @Entity("banned_user")
 export class BannedUser {
-  @Column({type: "int",  primary: true, name: "chat_room_id" })
+  @Column({type: "int", primary: true, name: "chat_room_id", unsigned: true })
   chatRoomId: number;
 
-  @Column({type: "int",  primary: true, name: "user_id" })
+  @Column({type: "int", primary: true, name: "user_id", unsigned: true })
   userId: number;
 
-  @Column({
-    type: "timestamp", 
-    name: "banned_at",
-    nullable: true,
-    default: () => "CURRENT_TIMESTAMP",
-  })
-  bannedAt: Date | null;
+  @Column({type: "timestamp",  name: "banned_at", default: () => "'now()'" })
+  bannedAt: Date;
 
-  @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.bannedUsers, {
+  @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.bannedUsers, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
   chatRoom: ChatRoom;
 
-  @ManyToOne(() => User, (users) => users.bannedUsers, {
+  @ManyToOne(() => User, (user) => user.bannedUsers, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;

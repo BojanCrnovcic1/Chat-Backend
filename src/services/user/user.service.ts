@@ -6,11 +6,13 @@ import { ApiResponse } from "src/misc/api.response.class";
 import { Like, Repository } from "typeorm";
 import * as crypto from "crypto";
 import { UpdateUserDto } from "src/dtos/user/update.user.dto";
+import { AccountDeletionRequest } from "src/entities/account-deletion-request.entity";
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) private readonly userRepository: Repository<User>
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(AccountDeletionRequest) private readonly accountDeletionRequestRepository: Repository<AccountDeletionRequest>
     ) {}
 
     async getAllUsers(): Promise<User[]> {
@@ -70,27 +72,28 @@ export class UserService {
         await this.userRepository.update(userId, user);
     }
 
-    async editUser(userId: number, data: UpdateUserDto): Promise<User | ApiResponse> {
-        const user = await this.userRepository.findOne({where: {userId: userId}});
+    async editUser(userId: number, data: Partial<UpdateUserDto>): Promise<User | ApiResponse> {
+        const user = await this.userRepository.findOne({ where: { userId } });
         if (!user) {
             return new ApiResponse('error', -1001, 'User not found!');
         }
-
-        const passwordHash = crypto.createHash('sha512');
-        passwordHash.update(data.password);
-        const passwordHashString = passwordHash.digest('hex').toUpperCase();
-
-        user.username = data.username;
-        user.passwordHash = passwordHashString;
-        user.profilePicture = data.prifilePicture;
-
+    
+        if (data.username) user.username = data.username;
+        if (data.password) {
+            const passwordHash = crypto.createHash('sha512');
+            passwordHash.update(data.password);
+            user.passwordHash = passwordHash.digest('hex').toUpperCase();
+        }
+        if (data.profilePicture) user.profilePicture = data.profilePicture;
+        if (data.onlineStatus !== undefined) user.onlineStatus = data.onlineStatus;
+    
         const savedUser = await this.userRepository.save(user);
         if (!savedUser) {
-            return new ApiResponse('error', -1002, 'No user data has been changed.')
+            return new ApiResponse('error', -1002, 'No user data has been changed.');
         }
         return savedUser;
     }
-
+    
     async createProfilePicture(userId: number, profilePicture: string): Promise<User | ApiResponse> {
         const user = await this.userRepository.findOne({where: {userId: userId}});
         if (!user) {
@@ -128,19 +131,55 @@ export class UserService {
         newUser.passwordHash = passwordHashString;
         newUser.profilePicture = data.profilePicture;
 
-        const savedUser = await this.userRepository.save(newUser);
-        if (!savedUser) {
-            return new ApiResponse('error', -1004, 'User is not saved!')
+        try {
+            const savedUser = await this.userRepository.save(newUser);
+            return savedUser;
+        } catch (error) {
+            console.error('Error while saving user:', error);
+            console.error('User data:', user);
+            return new ApiResponse('error', -1003, 'Error occurred during user update.');
         }
-        return savedUser;
+        
     }
 
-    async deleteUser(userId: number): Promise<User | ApiResponse> {
-        const user = await this.userRepository.findOne({where: {userId: userId}});
+    async updateLastLogin(userId: number): Promise<User> {
+        
+        await this.userRepository.update(userId, { lastActive: new Date() });
+    
+        const updatedUser = await this.userRepository.findOne({
+            where: { userId },
+        });
+    
+        if (!updatedUser) {
+            throw new Error('User not found');
+        }
+    
+        return updatedUser;
+    }
+    
+
+    async requestAccountDeletion(userId: number, reason: string): Promise<AccountDeletionRequest | ApiResponse> {
+        const user = await this.userRepository.findOne({ where: { userId } });
         if (!user) {
             return new ApiResponse('error', -1001, 'User not found!');
         }
-        return await this.userRepository.remove(user);
+    
+        const existingRequest = await this.accountDeletionRequestRepository.findOne({
+            where: { user: { userId }, isReviewed: false },
+        });
+    
+        if (existingRequest) {
+            return new ApiResponse('error', -1005, 'Deletion request already submitted!');
+        }
+    
+        const deletionRequest = this.accountDeletionRequestRepository.create({
+            user: user,
+            reason: reason,
+        });
+    
+        await this.accountDeletionRequestRepository.save(deletionRequest);
+        return new ApiResponse('success', 0, 'Deletion request submitted successfully.');
     }
+    
 
 }

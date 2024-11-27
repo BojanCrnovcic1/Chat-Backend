@@ -1,88 +1,86 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Friend } from "src/entities/friend.entity";
 import { Notification } from "src/entities/notification.entity";
-import { User } from "src/entities/user.entity";
 import { ChatGateway } from "src/gateways/chat.gateway";
 import { ApiResponse } from "src/misc/api.response.class";
-import { Brackets, Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class NotificationService {
     constructor(
        @InjectRepository(Notification) private readonly notificationRepository: Repository<Notification>,
-       @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
        private readonly chatGateway: ChatGateway
     ) {}
 
-    /*async countUnreadMessagesFromFriends(userId: number): Promise<{ friendId: number; unreadCount: number }[]> {
-        const unreadNotifications = await this.notificationRepository
-            .createQueryBuilder('notification')
-            .leftJoin('notification.user', 'user')
-            .leftJoin('user.friends', 'friend')  
-            .select('friend.friendId', 'friendId') 
-            .addSelect('COUNT(notification.notificationId)', 'unreadCount') 
-            .where('notification.isRead = false')   
-            .andWhere('user.userId = :userId', { userId }) 
-            .groupBy('friend.friendId')   
-                
-            .getRawMany();
-    
-        console.log('Raw unread notifications:', unreadNotifications);
-    
-        return unreadNotifications.map(item => ({
-            friendId: item.friendId ? parseInt(item.friendId, 10) : null,
-            unreadCount: parseInt(item.unreadCount, 10) // Vraćanje broja nepročitanih poruka po prijatelju
-        }));
-    }  */
-    async countUnreadMessagesFromFriends(userId: number): Promise<{ friendId: number; unreadCount: number }[]> {
-        // Prvo pronalazimo prijatelje korisnika
-        const friends = await this.friendRepository
-            .createQueryBuilder('friend')
-            .where('friend.userId = :userId OR friend.friendId = :userId', { userId })
-            .andWhere('friend.status = :status', { status: 'accepted' })
-            .leftJoinAndSelect('friend.user', 'user')  
-            .leftJoinAndSelect('friend.friend', 'friendUser') 
-            .getMany();
-    
-        console.log('friends: ', friends);
-    
-        // Izvlacimo friendId u zavisnosti od toga da li je userId ili friendId trenutni korisnik
-        const friendIds = friends.map(friend => {
-            return friend.userId === userId ? friend.friendId : friend.userId;
+   /* async getUnreadMessageCountsBySender(userId: number): Promise<{ senderId: number; count: number }[]> {
+        
+        const notifications = await this.notificationRepository.find({
+            where: {
+                userId: userId,
+                isRead: false
+            },
+            relations: ['message_2'],
         });
     
-        if (friendIds.length === 0) {
-            return []; // Ako nema prijatelja, vraćamo prazan niz
-        }
+        const countsBySender: { [senderId: number]: number } = {};
     
-        const unreadNotifications = await this.notificationRepository
-        .createQueryBuilder('notification')
-        .leftJoin('notification.user', 'user') // Pretpostavljam da user odnosi na korisnika koji je poslao notifikaciju
-        .select('notification.userId', 'friendId')
-        .addSelect('COUNT(notification.notificationId)', 'unreadCount')
-        .where('notification.isRead = false')
-        .having('notification.userId IN (:...friendIds)', { friendIds }) // Koristi 'userId' umesto 'receiverId'
-        .andWhere('notification.userId = :userId', { userId }) // Ili koristi odgovarajuću logiku za trenutnog korisnika
-        .groupBy('notification.userId')
-        .getRawMany();
+        notifications.forEach(notification => {
+            const senderId = notification.message_2.userId;
     
-
+            if (!notification.isRead) {
+                countsBySender[senderId] = (countsBySender[senderId] || 0) + 1;
+            } else {
+                
+                countsBySender[senderId] = (countsBySender[senderId] || 0) - 1;
     
-        console.log('unreadNotifications: ', unreadNotifications);
+                if (countsBySender[senderId] < 0) {
+                    countsBySender[senderId] = 0;
+                }
+            }
+        });
     
-        return unreadNotifications.map(item => ({
-            friendId: parseInt(item.friendId, 10),
-            unreadCount: parseInt(item.unreadCount, 10)
+        return Object.keys(countsBySender).map(senderId => ({
+            senderId: parseInt(senderId, 10),
+            count: countsBySender[senderId],
         }));
     }
     
-     
-    async createNotification(userId: number, message: string): Promise<Notification | ApiResponse> {
+    */
+    async getUnreadMessageCountsBySender(userId: number): Promise<{ senderId: number; count: number }[]> {
+        const unreadNotifications = await this.notificationRepository.find({
+            where: {
+                userId: userId,
+                isRead: false,
+            },
+            relations: ['message_2'],
+        });
+    
+        const countsBySender: { [senderId: number]: number } = {};
+    
+        unreadNotifications.forEach(notification => {
+            const senderId = notification.message_2.userId;
+    
+            if (countsBySender[senderId]) {
+                countsBySender[senderId] += 1;
+            } else {
+                countsBySender[senderId] = 1;
+            }
+
+        });
+    
+        return Object.keys(countsBySender).map(senderId => ({
+            senderId: parseInt(senderId, 10),
+            count: countsBySender[senderId],
+        }));
+    } 
+    
+    async createNotification(userId: number, message: string, chatRoomId?: number, messageId?: number): Promise<Notification | ApiResponse> {
         const notification = this.notificationRepository.create({
             userId,
             message,
             isRead: false,
+            chatRoomId: chatRoomId || null,
+            messageId: messageId || null
         });
 
         if (!notification) {
@@ -95,70 +93,24 @@ export class NotificationService {
             return new ApiResponse('error', -5003, 'Notification is not saved.')
         }
 
-         this.chatGateway.notifyUser(userId, message);
+         this.chatGateway.notifyUser(userId, message, chatRoomId, messageId);
         
         return savedNotification;
     }
 
     async getNotifications(userId: number): Promise<Notification[]> {
         return await this.notificationRepository.find(
-            {where: {userId: userId}, relations: ['user.messages']
+            { where: {userId: userId}, 
+              relations: ['message_2', 'user.friends.sender.messages.chatRoom']
         })
     }
 
-    async getUnreadNotificationsCountPerFriend(userId: number): Promise<{ [friendId: number]: number }> {
-        const userWithNotifications = await this.notificationRepository.find({
-            where: { userId: userId },
-            relations: ['user.friends']
-        });
-    
-        console.log('userWithNotifications:', userWithNotifications);
-    
-        const unreadCounts: { [friendId: number]: number } = {};
-    
-        userWithNotifications.forEach(notification => {
-            console.log('Processing notification:', notification);
-            notification.user.friends.forEach(friend => {
-                console.log('Checking friend:', friend);
-                if (notification.isRead === false && notification.message.includes(friend.friendId.toString())) {
-                    if (!unreadCounts[friend.friendId]) {
-                        unreadCounts[friend.friendId] = 0;
-                    }
-                    unreadCounts[friend.friendId]++;
-                }
-            });
-        });
-    
-        console.log('Unread notification counts per friend:', unreadCounts);
-        return unreadCounts;
-    }
-    
-    
-    
-    
-
-      async getUnreadNotifications(userId: number): Promise<{ count: number; notifications: Notification[] }> {
-        const unreadNotifications = await this.notificationRepository.find({
-            where: { userId, isRead: false },
-        });
-        if (unreadNotifications.length > 0) {
-            for (const notification of unreadNotifications) {
-                notification.isRead = true;
-            }
-    
-            await this.notificationRepository.save(unreadNotifications);
-        }
-        return {
-            count: unreadNotifications.length,
-            notifications: unreadNotifications,
-        };
-    }
-
-    async markAllAsRead(userId: number): Promise<Notification[]> {
+    async markAllAsRead(userId: number, senderId: number): Promise<Notification[]> {
         await this.notificationRepository.update(
-          { userId: userId, isRead: false },
+          { userId: userId, isRead: false, message_2: {userId: senderId} },
           { isRead: true }
         );
+        console.log()
 
         return await this.notificationRepository.find({
             where: { userId: userId },
@@ -181,6 +133,7 @@ export class NotificationService {
             return new ApiResponse('error', -9999, 'Internals server error');
         }
     }
+
 
     async deleteNotification(notificationId: number): Promise<Notification | ApiResponse> {
         const notification = await this.notificationRepository.findOne({where: {notificationId}});

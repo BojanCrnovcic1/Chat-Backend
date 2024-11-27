@@ -2,13 +2,13 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
 import { ChatRoom } from "./chat-room.entity";
 import { User } from "./user.entity";
 
-@Index("user_id", ["userId"], {})
+@Index("fk_chat_room_member_user_id", ["userId"], {})
 @Entity("chat_room_member")
 export class ChatRoomMember {
-  @Column({type: "int", primary: true, name: "chat_room_id" })
+  @Column({ type: "int", primary: true, name: "chat_room_id", unsigned: true })
   chatRoomId: number;
 
-  @Column({type: "int", primary: true, name: "user_id" })
+  @Column({ type: "int", primary: true, name: "user_id", unsigned: true })
   userId: number;
 
   @Column({
@@ -23,20 +23,20 @@ export class ChatRoomMember {
     type: "timestamp", 
     name: "joined_at",
     nullable: true,
-    default: () => "CURRENT_TIMESTAMP",
+    default: () => "'now()'",
   })
   joinedAt: Date | null;
 
-  @ManyToOne(() => ChatRoom, (chatRooms) => chatRooms.chatRoomMembers, {
+  @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.chatRoomMembers, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
   @JoinColumn([{ name: "chat_room_id", referencedColumnName: "chatRoomId" }])
   chatRoom: ChatRoom;
 
-  @ManyToOne(() => User, (users) => users.chatRoomMembers, {
+  @ManyToOne(() => User, (user) => user.chatRoomMembers, {
     onDelete: "CASCADE",
-    onUpdate: "NO ACTION",
+    onUpdate: "CASCADE",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;

@@ -5,8 +5,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { AccountDeletionRequest } from "./account-deletion-request.entity";
-import { AdminMessage } from "./admin-message.entity";
 import { BannedUser } from "./banned-user..entity";
 import { ChatRoomMember } from "./chat-room-member.entity";
 import { Friend } from "./friend.entity";
@@ -14,26 +12,27 @@ import { Like } from "./like.entity";
 import { Message } from "./message.entity";
 import { Notification } from "./notification.entity";
 
-@Index("uq_user_username", ["username"], { unique: true })
 @Index("uq_user_email", ["email"], { unique: true })
-@Entity("user", { schema: "chat_real" })
+@Index("uq_user_username", ["username"], { unique: true })
+@Entity("user")
 export class User {
   @PrimaryGeneratedColumn({ type: "int", name: "user_id", unsigned: true })
   userId: number;
 
-  @Column("varchar", { name: "username", unique: true, length: 50 })
+  @Column({ type: "varchar", unique: true, length: 50 })
   username: string;
 
-  @Column("varchar", { name: "email", unique: true, length: 100 })
+  @Column({ type: "varchar", unique: true, length: 100 })
   email: string;
 
-  @Column("varchar", { name: "password_hash", length: 255 })
+  @Column({ type: "varchar", name: "password_hash", length: 255 })
   passwordHash: string;
 
-  @Column("varchar", { name: "profile_picture", nullable: true, length: 255 })
+  @Column({ type: "varchar", name: "profile_picture", nullable: true, length: 255 })
   profilePicture: string | null;
 
-  @Column("tinyint", {
+  @Column({
+    type: "tinyint", 
     name: "online_status",
     nullable: true,
     width: 1,
@@ -41,7 +40,8 @@ export class User {
   })
   onlineStatus: boolean | null;
 
-  @Column("timestamp", {
+  @Column({
+    type: "timestamp", 
     name: "created_at",
     nullable: true,
     default: () => "'now()'",
@@ -54,15 +54,6 @@ export class User {
     default: () => "'now()'",
   })
   lastActive: Date | null;
-
-  @OneToMany(
-    () => AccountDeletionRequest,
-    (accountDeletionRequest) => accountDeletionRequest.user
-  )
-  accountDeletionRequests: AccountDeletionRequest[];
-
-  @OneToMany(() => AdminMessage, (adminMessage) => adminMessage.user)
-  adminMessages: AdminMessage[];
 
   @OneToMany(() => BannedUser, (bannedUser) => bannedUser.user)
   bannedUsers: BannedUser[];

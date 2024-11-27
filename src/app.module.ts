@@ -2,7 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './controllers/app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig } from 'config/database.config';
-import { BannedUser } from 'src/entities/banned-user.entity';
+import { BannedUser } from './entities/banned-user..entity';
 import { ChatRoom } from 'src/entities/chat-room.entity';
 import { ChatRoomMember } from 'src/entities/chat-room-member.entity';
 import { Friend } from 'src/entities/friend.entity';
@@ -33,6 +33,11 @@ import { NotificationService } from './services/notification/notification.servic
 import { LikeService } from './services/like/like.service';
 import { Like } from './entities/like.entity';
 import * as cors from 'cors';
+import { Admin } from './entities/admin.entity';
+import { AdminMessage } from './entities/admin-message.entity';
+import { AccountDeletionRequest } from './entities/account-deletion-request.entity';
+import { AdminService } from './services/administrator/admin.service';
+import { AdminController } from './controllers/api/admin.controller';
 
 @Module({
   imports: [
@@ -44,6 +49,9 @@ import * as cors from 'cors';
       password: DatabaseConfig.password,
       database: DatabaseConfig.database,
       entities: [
+        Admin,
+        AdminMessage,
+        AccountDeletionRequest,
         BannedUser,
         ChatRoom,
         ChatRoomMember,
@@ -59,6 +67,9 @@ import * as cors from 'cors';
       }  
     }),
     TypeOrmModule.forFeature([
+      Admin,
+      AdminMessage,
+      AccountDeletionRequest,
       BannedUser,
       ChatRoom,
       ChatRoomMember,
@@ -75,6 +86,7 @@ import * as cors from 'cors';
   ],
   controllers: [
     AppController,
+    AdminController,
     AuthController,
     ChatRoomController,
     MessageController,
@@ -83,6 +95,7 @@ import * as cors from 'cors';
     NotificationController,
   ],
   providers: [
+    AdminService,
     UserService,
     AuthService,
     JwtService,

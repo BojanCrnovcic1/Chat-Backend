@@ -17,19 +17,22 @@ export class NotificationController {
         return await this.notificationService.getNotifications(userId);
     }
 
-    @Get('unread-count/:userId')
-    async getUnreadMessagesCount(@Req() req: Request) {
-        const user =  await this.authService.getCurrentUser(req);
+    @Get('unread/:userId')
+   async getUnreadMessagesBySender(@Req() req: Request) {
+    const user =  await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
            new ApiResponse('error', -1009, 'User not authorized');
         }
         const userId = user.userId;
-        return await this.notificationService.getUnreadNotificationsCountPerFriend(userId);         
-    }
+     const unreadMessages = await this.notificationService.getUnreadMessageCountsBySender(userId);
 
-    @Patch(':userId/read-all')
-    async markAllNotificationsAsRead(@Param('userId') userId: number):Promise<Notification[]> {
-        return await this.notificationService.markAllAsRead(userId);
+    return unreadMessages;
+  }
+
+
+    @Patch(':userId/read-all/:senderId')
+    async markAllNotificationsAsRead(@Param('userId') userId: number, @Param('senderId') senderId: number):Promise<Notification[]> {
+        return await this.notificationService.markAllAsRead(userId, senderId);
     }
 
 

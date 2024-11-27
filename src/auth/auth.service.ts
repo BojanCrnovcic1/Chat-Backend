@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "./jwt.service";
 import * as bcrypt from "bcrypt";
-
 import { Request } from "express";
 import { UserService } from "src/services/user/user.service";
 import { User } from "src/entities/user.entity";
@@ -11,7 +10,7 @@ import { LoginUserDto } from "src/dtos/user/login.user.dto";
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
     ) {}
 
     async validateUser(email: string, password: string): Promise<User | null> {
@@ -28,25 +27,25 @@ export class AuthService {
             loginUserDto.email,
             loginUserDto.password
         );
-    
+      
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
     
+        const updatedUser = await this.userService.updateLastLogin(user.userId);
+    
         const userFarToken = {
-            userId: user.userId,
-            email: user.email,
+            userId: updatedUser.userId,
+            email: updatedUser.email,
         };
-
-        const expiresIn = 3600;
     
-        const token = this.jwtService.sign(userFarToken, );    
-    
-        user.onlineStatus = true;
-        await this.userService.updateUser(user.userId, user);
+        const token = this.jwtService.sign(userFarToken);
+      
+        await this.userService.updateUser(updatedUser.userId, updatedUser);
     
         return token;
     }
+    
 
       async logout(userId: number): Promise<void> {
         const user = await this.userService.getUserById(userId);
@@ -55,8 +54,9 @@ export class AuthService {
             throw new UnauthorizedException();
         }
 
-        user.onlineStatus = false;
-       return await this.userService.updateUser(userId, user);
+        const updateData = { onlineStatus: false };
+
+       return await this.userService.updateUser(userId, updateData);
     }
 
       async getCurrentUser(req: Request) {

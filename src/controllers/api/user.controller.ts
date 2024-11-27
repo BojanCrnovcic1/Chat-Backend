@@ -6,7 +6,8 @@ import multer from "multer";
 import { basename, extname } from "path";
 import { AuthService } from "src/auth/auth.service";
 import { UpdateUserDto } from "src/dtos/user/update.user.dto";
-import { BannedUser } from "src/entities/banned-user.entity";
+import { AccountDeletionRequest } from "src/entities/account-deletion-request.entity";
+import { BannedUser } from "src/entities/banned-user..entity";
 import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { BannedUserService } from "src/services/bannedUser/banned-user.service";
@@ -39,6 +40,12 @@ export class UserController {
     updateUser(@Param('id') userId: number, @Body() data: UpdateUserDto): Promise<User | ApiResponse> {
         return this.userService.editUser(userId, data);
     }
+
+    @Post('request-account-deletion/:userId')
+    async requestAccountDeletion(@Param('userId') userId: number, @Body('reason') reason: string,):
+     Promise<AccountDeletionRequest | ApiResponse> {
+    return await this.userService.requestAccountDeletion(userId, reason);
+}
 
     @Post('upload-profilePicture')
     @UseInterceptors(
@@ -101,8 +108,4 @@ export class UserController {
         return this.bannedUserService.unbanUser(chatRoomId, userId, curentUserId);
     }
 
-    @Delete(':id')
-    deleteAcc(@Param('id') userId: number): Promise<User | ApiResponse> {
-        return this.userService.deleteUser(userId);
-    }
 }
