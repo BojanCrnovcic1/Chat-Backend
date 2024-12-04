@@ -41,6 +41,23 @@ export class NotificationController {
         return await this.notificationService.createNotification(userId, message);
     }
 
+    @Post('global')
+    async sendGlobalNotification(
+        @Body('adminId') adminId: number,
+        @Body('message') message: string
+    ): Promise<Notification | ApiResponse> {
+        return await this.notificationService.createAdminGlobalNotification(adminId, message);
+    }
+
+    @Post('private')
+    async sendPrivateNotification(
+        @Body('adminId') adminId: number,
+        @Body('userId') userId: number,
+        @Body('message') message: string
+    ): Promise<Notification | ApiResponse> {
+        return await this.notificationService.createAdminPrivateNotification(adminId, userId, message);
+    }
+
     @Patch(':id/read')
     async markNotificationAsRead(@Param('id') notificationId: number): Promise<Notification | ApiResponse> {
         return await this.notificationService.markAsRead(notificationId);

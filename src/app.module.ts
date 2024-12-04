@@ -18,7 +18,7 @@ import { AuthService } from './auth/auth.service';
 import { JwtService } from './auth/jwt.service';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { LocalStrategy } from './auth/local.strategy';
-import { AuthGuard } from './auth/auth.guard';
+
 import { ChatGateway } from './gateways/chat.gateway';
 import { MessageService } from './services/message/message.service';
 import { ChatRoomService } from './services/chatRoom/chat.room.service';
@@ -38,6 +38,7 @@ import { AdminMessage } from './entities/admin-message.entity';
 import { AccountDeletionRequest } from './entities/account-deletion-request.entity';
 import { AdminService } from './services/administrator/admin.service';
 import { AdminController } from './controllers/api/admin.controller';
+import { AuthGuard } from './auth/auth.gaurd';
 
 @Module({
   imports: [

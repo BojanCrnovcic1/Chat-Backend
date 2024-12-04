@@ -12,4 +12,6 @@ export class LoginAdminDto {
     @IsNotEmpty()
     @IsString()
     password: string;
+
+    isAdmin?: boolean;
 }

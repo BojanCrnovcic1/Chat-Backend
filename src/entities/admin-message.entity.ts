@@ -4,10 +4,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Admin } from "./admin.entity";
 import { User } from "./user.entity";
+import { Notification } from "./notification.entity";
+
 
 @Index("fk_admin_message_admin_id", ["adminId"], {})
 @Index("fk_admin_message_user_id", ["userId"], {})
@@ -58,4 +61,7 @@ export class AdminMessage {
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "userId" }])
   user: User;
+
+  @OneToMany(() => Notification, (notification) => notification.adminMessage)
+  notifications: Notification[];
 }

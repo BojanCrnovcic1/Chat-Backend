@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { AdminMessage } from "src/entities/admin-message.entity";
 import { Notification } from "src/entities/notification.entity";
 import { ChatGateway } from "src/gateways/chat.gateway";
 import { ApiResponse } from "src/misc/api.response.class";
@@ -72,15 +73,63 @@ export class NotificationService {
             senderId: parseInt(senderId, 10),
             count: countsBySender[senderId],
         }));
-    } 
+    }
+
+    async createAdminGlobalNotification(adminId: number, message: string): Promise<Notification | ApiResponse> {
+        const notification = this.notificationRepository.create({
+            adminId,
+            message,
+            isRead: false,
+        });
+
+        const savedNotification = await this.notificationRepository.save(notification);
+
+        if (!savedNotification) {
+            return new ApiResponse('error', -5004, 'Global admin notification is not saved.');
+        }
+
+        this.chatGateway.broadcastMessage('adminGlobalNotification', { message });
+        return savedNotification;
+    }
+
+    async createAdminPrivateNotification(
+        adminId: number,
+        userId: number,
+        message: string,
+        adminMessageId?: number
+    ): Promise<Notification | ApiResponse> {
     
+        const notification = this.notificationRepository.create({
+            adminId,
+            userId,
+            message,
+            isRead: false,
+            adminMessageId: adminMessageId || null,
+        });
+    
+        try {
+            const savedNotification = await this.notificationRepository.save(notification);
+    
+            if (!savedNotification) {
+                return new ApiResponse('error', -5005, 'Private admin notification is not saved.');
+            }
+    
+            this.chatGateway.notifyUser(userId, message, undefined, undefined, adminMessageId);
+            return savedNotification;
+        } catch (error) {
+            console.error('Error saving notification:', error);
+            return new ApiResponse('error', -5006, 'Error occurred while saving notification.');
+        }
+    }
+    
+  
     async createNotification(userId: number, message: string, chatRoomId?: number, messageId?: number): Promise<Notification | ApiResponse> {
         const notification = this.notificationRepository.create({
             userId,
             message,
             isRead: false,
             chatRoomId: chatRoomId || null,
-            messageId: messageId || null
+            messageId: messageId || null,
         });
 
         if (!notification) {
@@ -101,7 +150,7 @@ export class NotificationService {
     async getNotifications(userId: number): Promise<Notification[]> {
         return await this.notificationRepository.find(
             { where: {userId: userId}, 
-              relations: ['message_2', 'user.friends.sender.messages.chatRoom']
+              relations: ['message_2', 'user.friends.sender.messages.chatRoom', 'adminMessage']
         })
     }
 

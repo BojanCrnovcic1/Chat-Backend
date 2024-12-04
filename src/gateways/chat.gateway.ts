@@ -1,4 +1,11 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage } from "@nestjs/websockets";
+import {
+    WebSocketGateway,
+    WebSocketServer,
+    OnGatewayInit,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    SubscribeMessage,
+} from "@nestjs/websockets";
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway()
@@ -10,12 +17,34 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         console.log('WebSocket server initialized');
     }
 
-    handleConnection(client: Socket, ...args: any[]) {
+    handleConnection(client: Socket) {
         console.log(`Client connected: ${client.id}`);
     }
 
     handleDisconnect(client: Socket) {
         console.log(`Client disconnected: ${client.id}`);
+    }
+
+    @SubscribeMessage('subscribeToNotifications')
+    handleUserSubscription(client: Socket, payload: { userId: number }): void {
+        client.join(`user_${payload.userId}`);
+    }
+
+    notifyUser(userId: number, message: string, chatRoomId?: number, messageId?: number, adminMessageId?: number): void {
+        if (userId) {
+            this.server.to(`user_${userId}`).emit('notification', { message, chatRoomId, messageId, adminMessageId });
+        } else {
+            console.error(`Invalid user ID: ${userId}`);
+        }
+    }
+
+    @SubscribeMessage('subscribeToAdminNotifications')
+    handleAdminSubscription(client: Socket, payload: { adminId: number }): void {
+        client.join(`admin_${payload.adminId}`);
+    }
+
+    notifyAdmin(adminId: number, message: string): void {
+        this.server.to(`admin_${adminId}`).emit('adminNotification', { message });
     }
 
     @SubscribeMessage('sendMessage')
@@ -29,16 +58,5 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         } else {
             console.error('WebSocket server is not initialized');
         }
-    }
-
-    
-
-    notifyUser(userId: number, message: string, chatRoomId?: number, messageId?: number): void {
-        this.server.to(`user_${userId}`).emit('notification', {message, chatRoomId, messageId});
-    }
-
-    @SubscribeMessage('subscribeToNotifications')
-    handleSubscription(client: Socket, payload: { userId: number }): void {
-        client.join(`user_${payload.userId}`);
     }
 }

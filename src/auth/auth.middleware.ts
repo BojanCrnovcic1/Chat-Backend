@@ -22,7 +22,12 @@ export class AuthMiddleware implements NestMiddleware {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    req['user'] = user;
+    req['user'] = {
+      ...user,
+      role: user.adminId ? 'admin' : 'user',
+    };
+
+   // req['user'] = user;
     
     next();
   }

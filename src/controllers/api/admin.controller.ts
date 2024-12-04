@@ -3,7 +3,7 @@ import { AdminMessage } from "src/entities/admin-message.entity";
 import { ApiResponse } from "src/misc/api.response.class";
 import { AdminService } from "src/services/administrator/admin.service";
 
-@Controller('admin')
+@Controller('api/admin')
 export class AdminController {
     constructor(
         private adminService: AdminService,
@@ -15,7 +15,7 @@ export class AdminController {
     }
 
     @Post('send-global-message/:id')
-    async sendGlobalMessage(@Param('id') adminId: number, @Body('content') content: string): Promise<AdminMessage> {
+    async sendGlobalMessage(@Param('id') adminId: number, @Body('content') content: string): Promise<AdminMessage | ApiResponse> {
         return await this.adminService.sendGlobalMessage(adminId, content);
     }
 

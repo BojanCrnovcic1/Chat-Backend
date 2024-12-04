@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { AdminMessage } from "./admin-message.entity";
-
+import { Notification } from "./notification.entity";
 @Index("uq_admin_username", ["username"], { unique: true })
 @Index("uq_admin_email", ["email"], { unique: true })
 @Entity("admin", { schema: "chat_real" })
@@ -25,4 +25,7 @@ export class Admin {
 
   @OneToMany(() => AdminMessage, (adminMessage) => adminMessage.admin)
   adminMessages: AdminMessage[];
+
+  @OneToMany(() => Notification, (notification) => notification.admin)
+  notifications: Notification[];
 }
