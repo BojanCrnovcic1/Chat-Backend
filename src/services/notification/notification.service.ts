@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AdminMessage } from "src/entities/admin-message.entity";
 import { Notification } from "src/entities/notification.entity";
 import { ChatGateway } from "src/gateways/chat.gateway";
 import { ApiResponse } from "src/misc/api.response.class";
@@ -12,41 +11,7 @@ export class NotificationService {
        @InjectRepository(Notification) private readonly notificationRepository: Repository<Notification>,
        private readonly chatGateway: ChatGateway
     ) {}
-
-   /* async getUnreadMessageCountsBySender(userId: number): Promise<{ senderId: number; count: number }[]> {
-        
-        const notifications = await this.notificationRepository.find({
-            where: {
-                userId: userId,
-                isRead: false
-            },
-            relations: ['message_2'],
-        });
     
-        const countsBySender: { [senderId: number]: number } = {};
-    
-        notifications.forEach(notification => {
-            const senderId = notification.message_2.userId;
-    
-            if (!notification.isRead) {
-                countsBySender[senderId] = (countsBySender[senderId] || 0) + 1;
-            } else {
-                
-                countsBySender[senderId] = (countsBySender[senderId] || 0) - 1;
-    
-                if (countsBySender[senderId] < 0) {
-                    countsBySender[senderId] = 0;
-                }
-            }
-        });
-    
-        return Object.keys(countsBySender).map(senderId => ({
-            senderId: parseInt(senderId, 10),
-            count: countsBySender[senderId],
-        }));
-    }
-    
-    */
     async getUnreadMessageCountsBySender(userId: number): Promise<{ senderId: number; count: number }[]> {
         const unreadNotifications = await this.notificationRepository.find({
             where: {

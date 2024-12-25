@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { StorageConfig } from "config/storage.config";
 import { Request } from "express";
 import multer from "multer";
 import { basename, extname } from "path";
+import { AuthGuard } from "src/auth/auth.gaurd";
 import { AuthService } from "src/auth/auth.service";
+import { Roles } from "src/auth/roles.decorator";
 import { UpdateUserDto } from "src/dtos/user/update.user.dto";
 import { AccountDeletionRequest } from "src/entities/account-deletion-request.entity";
 import { BannedUser } from "src/entities/banned-user..entity";
@@ -22,32 +24,44 @@ export class UserController {
     ) {}
 
     @Get()
+    @UseGuards(AuthGuard)
+    @Roles('admin', 'user')
     allUser(): Promise<User[]> {
         return this.userService.getAllUsers();
     }
 
     @Get('search')
+    @UseGuards(AuthGuard)
+    @Roles('admin', 'user')
     searchUsersByUsername(@Query('username') username: string): Promise<User[]> {
     return this.userService.getSearch(username);
     }
 
     @Get(':id')
+    @UseGuards(AuthGuard)
+    @Roles('admin', 'user')
     getUserById(@Param('id') userId: number): Promise<User | ApiResponse> {   
         return this.userService.getUserById(userId);
     }
 
     @Patch(':id/edit')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     updateUser(@Param('id') userId: number, @Body() data: UpdateUserDto): Promise<User | ApiResponse> {
         return this.userService.editUser(userId, data);
     }
 
     @Post('request-account-deletion/:userId')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     async requestAccountDeletion(@Param('userId') userId: number, @Body('reason') reason: string,):
      Promise<AccountDeletionRequest | ApiResponse> {
     return await this.userService.requestAccountDeletion(userId, reason);
 }
 
     @Post('upload-profilePicture')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     @UseInterceptors(
         FileInterceptor('profilePhoto', {
             storage: multer.diskStorage({
@@ -78,6 +92,8 @@ export class UserController {
     }
 
     @Post('logout')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     async logout(@Req() req: Request) {
         const user =  await this.authService.getCurrentUser(req);
         if (!user || !user.userId) {
@@ -87,6 +103,8 @@ export class UserController {
     }
 
     @Post(':chatRoomId/ban/:userId')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     async banUser(@Param('chatRoomId') chatRoomId: number, @Param('userId') userId: number, @Req() req: Request): Promise<BannedUser | ApiResponse> {
         const currentUser = await this.authService.getCurrentUser(req);
         
@@ -98,6 +116,8 @@ export class UserController {
     }
 
     @Delete(':chatRoomId/unban/:userId')
+    @UseGuards(AuthGuard)
+    @Roles('user')
     async unbanUser(@Param('chatRoomId') chatRoomId: number, @Param('userId') userId: number, @Req() req: Request): Promise<BannedUser | ApiResponse> {
         const currentUser = await this.authService.getCurrentUser(req);
         

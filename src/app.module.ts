@@ -18,7 +18,6 @@ import { AuthService } from './auth/auth.service';
 import { JwtService } from './auth/jwt.service';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { LocalStrategy } from './auth/local.strategy';
-
 import { ChatGateway } from './gateways/chat.gateway';
 import { MessageService } from './services/message/message.service';
 import { ChatRoomService } from './services/chatRoom/chat.room.service';
@@ -82,7 +81,7 @@ import { AuthGuard } from './auth/auth.gaurd';
     ]),
     JwtModule.register({
       secret: jwtSecret,
-      signOptions: {expiresIn: '1h'}
+      signOptions: {expiresIn: '30m'}
     })
   ],
   controllers: [
@@ -102,6 +101,7 @@ import { AuthGuard } from './auth/auth.gaurd';
     JwtService,
     JwtStrategy,
     LocalStrategy,
+    AuthMiddleware,
     AuthGuard,
     ChatGateway,
     ChatRoomService,

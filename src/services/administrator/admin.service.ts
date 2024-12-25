@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { AdminMessage } from "src/entities/admin-message.entity";
 import { Admin } from "src/entities/admin.entity";
 import { User } from "src/entities/user.entity";
@@ -20,6 +20,30 @@ export class AdminService {
         private readonly notificationService: NotificationService,
     ) {}
 
+    async getFilterUsers(page: number, pageSize: number, searchTerm: string = ""): Promise<{data: User[], total: number, page: number, pageSize: number}> {
+        const [users, total ] = await this.userRepository.findAndCount({
+            where: [
+                {username: Like(`%${searchTerm}%`)},
+                {email: Like(`%${searchTerm}%`)}
+            ],
+            order: {lastActive: "DESC"},
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        });
+
+        return { data: users, total: total, page, pageSize};
+    }
+
+    async getById(adminId: number): Promise<Admin | ApiResponse> {
+        const admin = await this.adminRepository.findOne({
+            where: {adminId: adminId},
+            relations: ['adminMessages', 'notifications']});
+        if (!admin) {
+            return new ApiResponse('error', -9009, 'Admin not found!');
+        }
+        return admin;
+    }
+
     async getAdminEmail(email: string): Promise<Admin | undefined> {
         return await this.adminRepository.findOne({ where: { email } });
     }
@@ -30,7 +54,7 @@ export class AdminService {
             select: ['userId', 'requestedAt', 'isReviewed', 'reason'],
         });
     }
-    
+
     async getAllUsers(): Promise<User[]> {
         return await this.userRepository.find();
     }
@@ -51,7 +75,7 @@ export class AdminService {
         }
     
         const notifications = users
-            .filter(user => user && user.userId) // Filtriraj samo validne korisnike
+            .filter(user => user && user.userId) 
             .map(user =>
                 this.notificationService.createAdminGlobalNotification(
                     adminId,
@@ -87,9 +111,9 @@ export class AdminService {
         return savedMessage;
     }
 
-    async deleteUserFromRequest(requestId: number): Promise<{ message: string }> {
+    async deleteUserFromRequest(requestId: number) {
         const deletionRequest = await this.accountDeletionRequestRepository.findOne({
-            where: { accountDeleteId: requestId },
+            where: { userId : requestId },
             relations: ["user"],
         });
 
@@ -109,11 +133,7 @@ export class AdminService {
             throw new Error(`User with ID ${deletionRequest.userId} not found.`);
         }
 
-        await this.userRepository.remove(userToDelete);
+         return await this.userRepository.remove(userToDelete);
 
-        deletionRequest.isReviewed = true;
-        await this.accountDeletionRequestRepository.save(deletionRequest);
-
-        return { message: `User with ID ${deletionRequest.userId} has been deleted, and request marked as reviewed.` };
     }
 }

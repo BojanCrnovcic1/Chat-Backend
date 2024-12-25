@@ -114,10 +114,9 @@ export class UserService {
     }
 
     async registerUser(data: RegisterUserDto): Promise<User | ApiResponse> {
-        console.log('Checking if user exists with email:', data.email);
+        
         const user = await this.getUserEmail(data.email);
         if (user) {
-            console.log('User found, returning error response');
             return new ApiResponse('error', -1002, 'User already exist!')
         }
 

@@ -5,7 +5,7 @@ import { ChatRoom } from "src/entities/chat-room.entity";
 import { Message } from "src/entities/message.entity";
 import { ChatGateway } from "src/gateways/chat.gateway";
 import { ApiResponse } from "src/misc/api.response.class";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { NotificationService } from "../notification/notification.service";
 import { User } from "src/entities/user.entity";
 
@@ -19,6 +19,49 @@ export class MessageService {
         private readonly chatGateway: ChatGateway,
     ) {}
 
+    async paginateMessages(
+        page: number,
+        pageSize: number,
+        username?: string, 
+        chatRoomId?: number,
+        searchTerm?: string
+    ): Promise<{
+        data: Message[],
+        total: number,
+        page: number,
+        pageSize: number
+    }> {
+        const whereConditions = [];
+    
+        if (username) {
+            const user = await this.userRepository.findOne({ where: { username } });
+            if (user) {
+                whereConditions.push({ userId: user.userId });
+            } else {
+                return { data: [], total: 0, page, pageSize };
+            }
+        }
+    
+        if (chatRoomId) {
+            whereConditions.push({ chatRoomId });
+        }
+    
+        if (searchTerm) {
+            whereConditions.push({ content: Like(`%${searchTerm}%`) });
+        }
+    
+        const [messages, total] = await this.messageRepository.findAndCount({
+            where: whereConditions.length ? whereConditions : undefined,
+            order: { createdAt: "DESC" },
+            relations: ['user', 'chatRoom'],
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        });
+    
+        return { data: messages, total, page, pageSize };
+    }
+    
+    
     async allMessage(chatRoomId: number): Promise<Message[]> {
         return await this.messageRepository.find({
             where: {chatRoomId: chatRoomId},

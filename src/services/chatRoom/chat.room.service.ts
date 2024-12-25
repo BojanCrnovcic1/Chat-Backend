@@ -1,12 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateChatRoomDto } from "src/dtos/chatRoom/create.chat.room.dto";
-
 import { ChatRoomMember } from "src/entities/chat-room-member.entity";
 import { ChatRoom } from "src/entities/chat-room.entity";
 import { User } from "src/entities/user.entity";
 import { ApiResponse } from "src/misc/api.response.class";
-import { In, Repository } from "typeorm";
+import {  Like, Repository } from "typeorm";
 
 @Injectable()
 export class ChatRoomService {
@@ -15,6 +14,34 @@ export class ChatRoomService {
         @InjectRepository(ChatRoomMember) private readonly chatRoomMemberRepository: Repository<ChatRoomMember>,
         @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
+
+    async paginateRooms(page: number, pageSize: number, searchTerm: string = ""): Promise<{
+        data: { chatRoom: ChatRoom, isGroup: boolean, members: User[] }[],
+        total: number,
+        page: number,
+        pageSize: number
+    }> {
+        const [rooms, total] = await this.chatRoomRepository.findAndCount({
+            where: [
+                { name: Like(`%${searchTerm}%`) },
+                { name: null },
+            ],
+            order: { createdAt: "DESC" },
+            relations: ['chatRoomMembers', 'chatRoomMembers.user'],
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        });
+    
+        const data = rooms.map(room => {
+            const isGroup = !!room.name;
+            const members = room.chatRoomMembers.map(member => member.user); 
+    
+            return { chatRoom: room, isGroup, members };
+        });
+    
+        return { data, total, page, pageSize };
+    }
+    
 
 
     async getUserGroupRooms(userId: number): Promise<ChatRoom[]> {

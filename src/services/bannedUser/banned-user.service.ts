@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import e from "cors";
 import { BannedUser } from "src/entities/banned-user..entity";
 import { ChatRoom } from "src/entities/chat-room.entity";
 import { User } from "src/entities/user.entity";
